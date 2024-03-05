@@ -11,10 +11,10 @@ struct GlobalDescriptorTable global_descriptor_table = {
            0, 0, 0, 0, 0, 0, 0, 0
         },
         {
-            0xFFFFF, 0, 0xA/0b1010, 1, 0, 1, 0, 1, 1
+            0xFFFF, 0, 0x9A, 1, 0, 1, 0, 1, 1
         },
         {
-            0xFFFFF, 0, 0x2/0b0010, 1, 0, 1, 0, 1, 1
+            0xFFFF, 0, 0x92, 1, 0, 1, 0, 1, 1
         }
     }
 };
@@ -27,6 +27,6 @@ struct GlobalDescriptorTable global_descriptor_table = {
 struct GDTR _gdt_gdtr = {
     // TODO : Implement, this GDTR will point to global_descriptor_table. 
     //        Use sizeof operator
-    sizeof(GDTR.address)-1
+    .size = sizeof(global_descriptor_table.table) - 1,
+    .address = &global_descriptor_table
 };
-
