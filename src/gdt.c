@@ -8,14 +8,14 @@
 struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
         {
-           0, 0, 0, 0, 0, 0, 0, 0
-        },
+            0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        }, // null descriptor
         {
-            0xFFFF, 0, 0x9A, 1, 0, 1, 0, 1, 1
-        },
+            0xFFFF, 0x0000, 0x00, 0x0A, 0x01, 0x00, 0x01, 0x0F, 0x00, 0x00, 0x01, 0x00, 0x01
+            }, // kernel code segment
         {
-            0xFFFF, 0, 0x92, 1, 0, 1, 0, 1, 1
-        }
+            0xFFFF, 0x0000, 0x00, 0x02, 0x01, 0x00, 0x01, 0x0F, 0x00, 0x00, 0x01, 0x00, 0x01
+            }  // kernel data segment
     }
 };
 
@@ -25,8 +25,6 @@ struct GlobalDescriptorTable global_descriptor_table = {
  * From: https://wiki.osdev.org/Global_Descriptor_Table, GDTR.size is GDT size minus 1.
  */
 struct GDTR _gdt_gdtr = {
-    // TODO : Implement, this GDTR will point to global_descriptor_table. 
-    //        Use sizeof operator
     .size = sizeof(global_descriptor_table.table) - 1,
     .address = &global_descriptor_table
 };
