@@ -59,6 +59,9 @@
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "files.associations": {
     "kernel-entrypoint.h": "c",
-    "gdt.h": "c"
+    "gdt.h": "c",
+    "portio.h": "c",
+    "framebuffer.h": "c",
+    "stddef.h": "c"
   }
 }
