@@ -62,6 +62,7 @@
     "gdt.h": "c",
     "portio.h": "c",
     "framebuffer.h": "c",
-    "stddef.h": "c"
+    "stddef.h": "c",
+    "idt.h": "c"
   }
 }
