@@ -1,4 +1,5 @@
 #include "header/text/keyboard.h"
+#include "header/cpu/interrupt.h"
 #include "header/text/framebuffer.h"
 #include "header/cpu/portio.h"
 #include "header/stdlib/string.h"
@@ -54,9 +55,6 @@ void get_keyboard_buffer(char *buf){
  * Will start listen and process keyboard scancode if keyboard_input_on.
  */
 void keyboard_isr(void){
-    // memanggil main_intterupt_handler
-    // main_interrupt_handler()
-
     // mendapat scancode scancode dari port KEYBOARD_DATA_PORT
     uint8_t scancode = in(KEYBOARD_DATA_PORT);
 
@@ -69,5 +67,5 @@ void keyboard_isr(void){
     }
 
     // pic_ack() ke IRQ1
-    // pic_ack(IRQ_KEYBOARD);
+    pic_ack(IRQ_KEYBOARD);
 }
