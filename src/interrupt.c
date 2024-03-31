@@ -1,4 +1,6 @@
 #include "header/cpu/interrupt.h"
+#include "header/text/keyboard.h"
+#include "header/cpu/portio.h"
 
 void io_wait(void) {
     out(0x80, 0);
@@ -34,4 +36,12 @@ void pic_remap(void) {
 
 void activate_keyboard_interrupt(void) {
     out(PIC1_DATA, in(PIC1_DATA) & ~(1 << IRQ_KEYBOARD));
+}
+
+void main_interrupt_handler(struct InterruptFrame frame) {
+    switch (frame.int_number) {
+        case PIC1 + IRQ_KEYBOARD:
+            keyboard_isr();
+            break;
+    }
 }
