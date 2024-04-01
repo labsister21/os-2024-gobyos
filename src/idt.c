@@ -1,7 +1,7 @@
 #include "header/idt.h"
 #include "header/cpu/gdt.h"
 
-struct interrupt_descriptor_table interrupt_descriptor_table;
+struct interrupt_descriptor_table interrupt_descriptor_table = {{0}};
 
 struct IDTR _idt_idtr = {
     .limit = sizeof(struct interrupt_descriptor_table) - 1,

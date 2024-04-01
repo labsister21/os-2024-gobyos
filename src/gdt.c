@@ -8,14 +8,106 @@
 struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
         {
-            0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-        }, // null descriptor
+            // Null Descriptor
+            .segment_low = 0x0000,
+            .base_low = 0x0000,
+
+            .base_mid = 0x00,
+            .type_bit = 0x00,
+            .non_system = 0x00,
+            .dpl = 0x00,
+            .present = 0x00,
+            .limit_high = 0x00,
+            .available = 0x00,
+            .reserved = 0x00,
+            .opsize = 0x00,
+            .granularity = 0x00,
+            .base_high = 0x00,
+        },
         {
-            0xFFFF, 0x0000, 0x00, 0x0A, 0x01, 0x00, 0x01, 0x0F, 0x00, 0x00, 0x01, 0x00, 0x01
-            }, // kernel code segment
+            // Kernel code segment
+            .segment_low = 0xFFFF,
+            .base_low = 0x0000,
+
+            .base_mid = 0x00,
+            .type_bit = 0xA,
+            .non_system = 0x01,
+            .dpl = 0x00,
+            .present = 0x01,
+            .limit_high = 0xF,
+            .available = 0x00,
+            .reserved = 0x00,
+            .opsize = 0x01,
+            .granularity = 0x01,
+            .base_high = 0x00,
+        },
         {
-            0xFFFF, 0x0000, 0x00, 0x02, 0x01, 0x00, 0x01, 0x0F, 0x00, 0x00, 0x01, 0x00, 0x01
-            }  // kernel data segment
+            // Kernel data segment
+            .segment_low = 0xFFFF,
+            .base_low = 0x0000,
+
+            .base_mid = 0x00,
+            .type_bit = 0x2,
+            .non_system = 0x01,
+            .dpl = 0x00,
+            .present = 0x01,
+            .limit_high = 0xF,
+            .available = 0x00,
+            .reserved = 0x00,
+            .opsize = 0x01,
+            .granularity = 0x01,
+            .base_high = 0x00,
+        },
+        {
+            // User code segment
+            .segment_low = 0xFFFF,
+            .base_low = 0x0000,
+
+            .base_mid = 0x00,
+            .type_bit = 0xA,
+            .non_system = 0x01,
+            .dpl = 0x03,
+            .present = 0x01,
+            .limit_high = 0xF,
+            .available = 0x00,
+            .reserved = 0x00,
+            .opsize = 0x01,
+            .granularity = 0x01,
+            .base_high = 0x00,
+        },
+        {
+            // User data segment
+            .segment_low = 0xFFFF,
+            .base_low = 0x0000,
+
+            .base_mid = 0x00,
+            .type_bit = 0x2,
+            .non_system = 0x01,
+            .dpl = 0x03,
+            .present = 0x01,
+            .limit_high = 0xF,
+            .available = 0x00,
+            .reserved = 0x00,
+            .opsize = 0x01,
+            .granularity = 0x01,
+            .base_high = 0x00,
+        },
+        {
+            .segment_low       = 0xFFFF,
+            .base_low          = 0,
+            .base_mid          = 0,
+            .type_bit          = 0x9,
+            .non_system        = 0,    
+            .dpl               = 0,   
+            .present           = 1,   
+            .limit_high        = 0xF,
+            .available         = 0,
+            .reserved          = 0,    
+            .opsize            = 0,    
+            .granularity       = 0,    
+            .base_high         = 0
+        },
+        {0}
     }
 };
 
