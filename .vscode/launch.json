@@ -6,7 +6,7 @@
       "type": "lldb",
       "request": "custom",
       "targetCreateCommands": [
-        "target create ${workspaceRoot}/bin/kernel"
+        "target create '${workspaceFolder}/bin/kernel'"
       ],
       "processCreateCommands": [
         "gdb-remote localhost:1234",
