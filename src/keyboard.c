@@ -79,13 +79,15 @@ const char keyboard_scancode_1_to_ascii_capslock[256] = {
 };
 
 const char* get_scancode_to_ascii_map() {
-  if (is_capslock) {
-    if (is_shift) {
-      return keyboard_scancode_1_to_ascii_shift;
-    } else {
-      return keyboard_scancode_1_to_ascii_capslock;
+    if (is_capslock) {
+        if (is_shift) {
+            return keyboard_scancode_1_to_ascii_shift;
+        } else {
+            return keyboard_scancode_1_to_ascii_capslock;
+        }
     }
-  }
+
+    return keyboard_scancode_1_to_ascii_map;
 }
 
 /* -- Driver Interfaces -- */
