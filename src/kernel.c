@@ -5,6 +5,7 @@
 #include "header/kernel-entrypoint.h"
 #include "header/text/framebuffer.h"
 #include "header/text/keyboard.h"
+#include "header/idt.h"
 
 void kernel_setup(void) {
     uint32_t a;
