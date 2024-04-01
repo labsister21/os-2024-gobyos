@@ -5,7 +5,7 @@
 #include "header/stdlib/string.h"
 #include "stdbool.h"
 
-struct KeyboardDriverState KeyboardDriverState = {
+struct KeyboardDriverState keyboard_gobyos = {
     .read_extended_mode = false,
     .keyboard_input_on = false,
     .keyboard_buffer = '\0',
@@ -42,21 +42,21 @@ const char keyboard_scancode_1_to_ascii_map[256] = {
 // Activate keyboard ISR / start listen keyboard & save to buffer
 void keyboard_state_activate(void){
     activate_keyboard_interrupt();
-    KeyboardDriverState.keyboard_input_on = true;
+    keyboard_gobyos.keyboard_input_on = true;
 
 }
 
 // Deactivate keyboard ISR / stop listening keyboard interrupt
 void keyboard_state_deactivate(void){
-    KeyboardDriverState.keyboard_input_on = false;
+    keyboard_gobyos.keyboard_input_on = false;
 }
 
 // Get keyboard buffer value and flush the buffer - @param buf Pointer to char buffer
 void get_keyboard_buffer(char *buf){
-    *buf = KeyboardDriverState.keyboard_buffer;
+    *buf = keyboard_gobyos.keyboard_buffer;
 
     // Flush the keyboard buffer
-    KeyboardDriverState.keyboard_buffer = '\0';
+    keyboard_gobyos.keyboard_buffer = '\0';
 }
 
 /* -- Keyboard Interrupt Service Routine -- */
@@ -67,9 +67,9 @@ void get_keyboard_buffer(char *buf){
  */
 
 void keyboard_isr(void){
-    uint8_t scancode = in(KEYBOARD_DATA_PORT);
 
-    if (KeyboardDriverState.keyboard_input_on) {
+    if (keyboard_gobyos.keyboard_input_on) {
+        uint8_t scancode = in(KEYBOARD_DATA_PORT);
         char ascii_char = keyboard_scancode_1_to_ascii_map[scancode];
         
         // Handle special ASCII characters
@@ -82,6 +82,11 @@ void keyboard_isr(void){
             // Move the cursor back one position
             if (cursor_col > 0) {
                 cursor_col--;
+                framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
+                framebuffer_set_cursor(cursor_row, cursor_col);
+            } else if (cursor_row > 0) {
+                cursor_row--;
+                cursor_col = 79;  // Move to the last column of the previous line
                 framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
                 framebuffer_set_cursor(cursor_row, cursor_col);
             }
@@ -97,17 +102,16 @@ void keyboard_isr(void){
               framebuffer_set_cursor(cursor_row, cursor_col);
             }
         } else {
-            // Regular character, update cursor position
-            framebuffer_write(cursor_row, cursor_col, ascii_char, 0x07, 0x00);
-            cursor_col++;
             // Check if cursor reaches end of line
             if (cursor_col > 79) {
                 cursor_row++;
                 cursor_col = 0;  // Reset column to 0 for the next line
             }
+            // Regular character, update cursor position
+            framebuffer_write(cursor_row, cursor_col, ascii_char, 0x07, 0x00);
+            cursor_col++;
             framebuffer_set_cursor(cursor_row, cursor_col);
         }
-        KeyboardDriverState.keyboard_buffer = ascii_char;
     }
 
     pic_ack(IRQ_KEYBOARD);
