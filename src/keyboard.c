@@ -5,6 +5,9 @@
 #include "header/stdlib/string.h"
 #include "stdbool.h"
 
+static bool is_shift = false;
+static bool is_capslock = false;
+
 struct KeyboardDriverState keyboard_gobyos = {
     .read_extended_mode = false,
     .keyboard_input_on = false,
@@ -35,7 +38,61 @@ const char keyboard_scancode_1_to_ascii_map[256] = {
       0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
 };
 
-// nanti bikin untuk shift dan capslock
+const char keyboard_scancode_1_to_ascii_shift[256] = {
+      0, 0x1B, '!', '@', '#', '$', '%', '^',  '&', '*', '(',  ')',  '_', '+', '\b', '\t',
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,  '{',  '}',  '\n',   0,   0,   0,
+      0,    0,   0,   0,   0,   0,   0, ':', '"', '`',   0,     0,     0,    0,   0,   0,
+      0,    0,   0, '<', '>', '?',   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+};
+
+const char keyboard_scancode_1_to_ascii_capslock[256] = {
+      0, 0x1B, '1', '2', '3', '4', '5', '6',  '7', '8', '9',  '0',  '-', '=', '\b', '\t',
+    'Q',  'W', 'E', 'R', 'T', 'Y', 'U', 'I',  'O', 'P', '[',  ']', '\n',   0,  'A',  'S',
+    'D',  'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', '`',   0, '\\',  'Z', 'X',  'C',  'V',
+    'B',  'N', 'M', ',', '.', '/',   0, '*',    0, ' ',   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0, '-',    0,    0,   0,  '+',    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+      0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
+};
+
+const char* get_scancode_to_ascii_map() {
+    if (is_capslock) {
+        if (is_shift) {
+            return keyboard_scancode_1_to_ascii_shift;
+        } else {
+            return keyboard_scancode_1_to_ascii_capslock;
+        }
+    } else {
+        if (is_shift) {
+            return keyboard_scancode_1_to_ascii_shift;
+        } else {
+            return keyboard_scancode_1_to_ascii_map;
+        }
+    }
+}
 
 /* -- Driver Interfaces -- */
 
@@ -67,11 +124,31 @@ void get_keyboard_buffer(char *buf){
  */
 
 void keyboard_isr(void){
+    uint8_t scancode = in(KEYBOARD_DATA_PORT);
 
-    if (keyboard_gobyos.keyboard_input_on) {
+    // Check for shift and capslock scancodes
+    if (scancode == 0x2A || scancode == 0x36) {
+        // If shift (left or right) key is pressed
+        is_shift = true;
+        pic_ack(IRQ_KEYBOARD);
+        return;
+    } else if (scancode == 0xAA || scancode == 0xB6) {
+        // If shift (left or right) key is pressed
+        is_shift = false;
+        pic_ack(IRQ_KEYBOARD);
+        return;
+    } else if (scancode == 0x3A) {
+        // If capslock key is pressed or released
+        is_capslock = !is_capslock;
+        pic_ack(IRQ_KEYBOARD);
+        return;
+    } 
+    
+    if (!keyboard_gobyos.keyboard_input_on) {
+        keyboard_gobyos.keyboard_buffer = '\0';
+    } else {
         uint8_t scancode = in(KEYBOARD_DATA_PORT);
-        char ascii_char = keyboard_scancode_1_to_ascii_map[scancode];
-        
+        char ascii_char = get_scancode_to_ascii_map()[scancode];
         // Handle special ASCII characters
         if (ascii_char == '\n') {
             // Move the cursor to the beginning of the next line
@@ -93,13 +170,13 @@ void keyboard_isr(void){
         } else if (ascii_char == '\t') {
             // Move the cursor to the next tab stop
             for (int i = 0; i < 5; i++) {
-              if (cursor_col > 79) {
-                cursor_col = 0;
-                cursor_row++;
-              }
-              framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
-              cursor_col++;
-              framebuffer_set_cursor(cursor_row, cursor_col);
+                if (cursor_col > 79) {
+                    cursor_col = 0;
+                    cursor_row++;
+                }
+                framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
+                cursor_col++;
+                framebuffer_set_cursor(cursor_row, cursor_col);
             }
         } else {
             // Check if cursor reaches end of line
