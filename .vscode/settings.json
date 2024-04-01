@@ -63,6 +63,8 @@
     "portio.h": "c",
     "framebuffer.h": "c",
     "stddef.h": "c",
-    "idt.h": "c"
+    "idt.h": "c",
+    "string.h": "c",
+    "keyboard.h": "c"
   }
 }

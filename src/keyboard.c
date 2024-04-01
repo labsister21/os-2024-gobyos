@@ -3,8 +3,16 @@
 #include "header/text/framebuffer.h"
 #include "header/cpu/portio.h"
 #include "header/stdlib/string.h"
+#include "stdbool.h"
 
-struct KeyboardDriverState KeyboardDriverState;
+struct KeyboardDriverState KeyboardDriverState = {
+    .read_extended_mode = false,
+    .keyboard_input_on = false,
+    .keyboard_buffer = '\0',
+};
+
+static uint8_t cursor_row = 0;
+static uint8_t cursor_col = 0;
 
 
 const char keyboard_scancode_1_to_ascii_map[256] = {
@@ -31,6 +39,7 @@ const char keyboard_scancode_1_to_ascii_map[256] = {
 
 // Activate keyboard ISR / start listen keyboard & save to buffer
 void keyboard_state_activate(void){
+    activate_keyboard_interrupt();
     KeyboardDriverState.keyboard_input_on = true;
 
 }
@@ -54,18 +63,50 @@ void get_keyboard_buffer(char *buf){
  * Handling keyboard interrupt & process scancodes into ASCII character.
  * Will start listen and process keyboard scancode if keyboard_input_on.
  */
+
 void keyboard_isr(void){
-    // mendapat scancode scancode dari port KEYBOARD_DATA_PORT
     uint8_t scancode = in(KEYBOARD_DATA_PORT);
 
-    // Jika keyboard_input_on bernilai true
     if (KeyboardDriverState.keyboard_input_on) {
-        // mengubah scancode menjadi ASCII character
         char ascii_char = keyboard_scancode_1_to_ascii_map[scancode];
-        // menyimpan karakter ASCII ke keyboard_buffer
+        
+        // Handle special ASCII characters
+        if (ascii_char == '\n') {
+            // Move the cursor to the beginning of the next line
+            cursor_row++;
+            cursor_col = 0;  // Reset column to 0 for the next line
+            framebuffer_set_cursor(cursor_row, cursor_col);
+        } else if (ascii_char == '\b') {
+            // Move the cursor back one position
+            if (cursor_col > 0) {
+                cursor_col--;
+                framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
+                framebuffer_set_cursor(cursor_row, cursor_col);
+            }
+        } else if (ascii_char == '\t') {
+            // Move the cursor to the next tab stop
+            for (int i = 0; i < 5; i++) {
+              if (cursor_col > 79) {
+                cursor_col = 0;
+                cursor_row++;
+              }
+              framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
+              cursor_col++;
+              framebuffer_set_cursor(cursor_row, cursor_col);
+            }
+        } else {
+            // Regular character, update cursor position
+            framebuffer_write(cursor_row, cursor_col, ascii_char, 0x07, 0x00);
+            cursor_col++;
+            // Check if cursor reaches end of line
+            if (cursor_col > 79) {
+                cursor_row++;
+                cursor_col = 0;  // Reset column to 0 for the next line
+            }
+            framebuffer_set_cursor(cursor_row, cursor_col);
+        }
         KeyboardDriverState.keyboard_buffer = ascii_char;
     }
 
-    // pic_ack() ke IRQ1
     pic_ack(IRQ_KEYBOARD);
 }
