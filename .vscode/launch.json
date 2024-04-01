@@ -1,14 +1,27 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Kernel",
-            "type": "lldb",
-            "request": "custom",
-            "targetCreateCommands": ["target create ${workspaceRoot}/bin/kernel"],
-            "processCreateCommands": ["gdb-remote localhost:1234", "c"],
-            "preLaunchTask": "Launch QEMU",
-            "postDebugTask": "Exit QEMU",
-        },
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Kernel",
+      "type": "lldb",
+      "request": "custom",
+      "targetCreateCommands": [
+        "target create ${workspaceRoot}/bin/kernel"
+      ],
+      "processCreateCommands": [
+        "gdb-remote localhost:1234",
+        "c"
+      ],
+      "preLaunchTask": "Launch QEMU",
+      "postDebugTask": "Exit QEMU"
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": ".",
+      "program": "build/Debug/outDebug"
+    }
+  ]
 }
