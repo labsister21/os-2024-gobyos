@@ -35,6 +35,8 @@ const char keyboard_scancode_1_to_ascii_map[256] = {
       0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
 };
 
+// nanti bikin untuk shift dan capslock
+
 /* -- Driver Interfaces -- */
 
 // Activate keyboard ISR / start listen keyboard & save to buffer
