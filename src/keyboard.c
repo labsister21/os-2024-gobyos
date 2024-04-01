@@ -149,26 +149,32 @@ void keyboard_isr(void){
     } else {
         uint8_t scancode = in(KEYBOARD_DATA_PORT);
         char ascii_char = get_scancode_to_ascii_map()[scancode];
-        // Handle special ASCII characters
-        if (ascii_char == '\n') {
-            // Move the cursor to the beginning of the next line
-            cursor_row++;
-            cursor_col = 0;  // Reset column to 0 for the next line
-            framebuffer_set_cursor(cursor_row, cursor_col);
-        } else if (ascii_char == '\b') {
-            // Move the cursor back one position
+
+        if (ascii_char != 0) {
+          // Handle special ASCII characters
+          if (ascii_char == '\n') {
+            // newline handler
+              if (cursor_row <= 24) {
+                // pindahin kursor ke nextline
+                cursor_row++;
+                cursor_col = 0;  // reset cursor
+              }
+              framebuffer_set_cursor(cursor_row, cursor_col);
+          } else if (ascii_char == '\b') {
+            // backspace handler
+            // pindahin cursor 1 kebelakang
             if (cursor_col > 0) {
                 cursor_col--;
                 framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
                 framebuffer_set_cursor(cursor_row, cursor_col);
             } else if (cursor_row > 0) {
+                cursor_col = 79;  // pindahin ke previous line (row sblomnya)
                 cursor_row--;
-                cursor_col = 79;  // Move to the last column of the previous line
                 framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
                 framebuffer_set_cursor(cursor_row, cursor_col);
             }
-        } else if (ascii_char == '\t') {
-            // Move the cursor to the next tab stop
+          } else if (ascii_char == '\t') {
+            // tab handler
             for (int i = 0; i < 5; i++) {
                 if (cursor_col > 79) {
                     cursor_col = 0;
@@ -178,18 +184,17 @@ void keyboard_isr(void){
                 cursor_col++;
                 framebuffer_set_cursor(cursor_row, cursor_col);
             }
-        } else {
-            // Check if cursor reaches end of line
+          } else {
+            // check apakah cursor sudah di endline
             if (cursor_col > 79) {
+                cursor_col = 0; // reset cursor untuk nextline
                 cursor_row++;
-                cursor_col = 0;  // Reset column to 0 for the next line
             }
-            // Regular character, update cursor position
             framebuffer_write(cursor_row, cursor_col, ascii_char, 0x07, 0x00);
             cursor_col++;
             framebuffer_set_cursor(cursor_row, cursor_col);
+          }
         }
     }
-
     pic_ack(IRQ_KEYBOARD);
 }
