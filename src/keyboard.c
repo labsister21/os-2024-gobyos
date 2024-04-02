@@ -175,7 +175,7 @@ void keyboard_isr(void){
             }
           } else if (ascii_char == '\t') {
             // tab handler
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 4; i++) {
                 if (cursor_col > 79) {
                     cursor_col = 0;
                     cursor_row++;
