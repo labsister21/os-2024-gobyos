@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include <stddef.h>
-#include "header/filesystem/fat23.h"
+#include "string.h"
+#include "header/filesystem/fat32.h"
 
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'C', 'o', 'u', 'r', 's', 'e', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
@@ -13,30 +13,95 @@ const uint8_t fs_signature[BLOCK_SIZE] = {
     [BLOCK_SIZE-1] = 'k',
 };
 
-struct FAT32DriverState driver;
+/* struct to save the file system driver state */
+struct FAT32DriverState FAT32DriverState = {};
+
+/* convert cluster to LBA(Logical Block Addressing)*/
 
 uint32_t cluster_to_lba(uint32_t cluster) {
-    return cluster * CLUSTER_BLOCK_COUNT;
+    return CLUSTER_SIZE;
 }
 
-void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
+void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uint32_t parent_dir_cluster){
+    /*index filealllocation tabel mewakili cluster index, 
+    cluster 0 : cluster_0_value;
+    cluster 1 : cluster_1_value -->  CRUD operation in this section
+    cluster 2 : root
+    cluster 3 : empty */
+    struct FAT32DirectoryEntry dirEntry = {
+        .name = {name[0], name[1], name[2], name[3], name[4], name[5], name[6], name[7]},
+        .attribute = ATTR_SUBDIRECTORY,
+        .user_attribute = UATTR_NOT_EMPTY,
+        .cluster_high = parent_dir_cluster >> 16,
+        .cluster_low = parent_dir_cluster,
+        .filesize = 0,
+    };
+    dir_table->cluster_map[0] = CLUSTER_0_VALUE;
+    dir_table->cluster_map[1] = CLUSTER_1_VALUE;
+    dir_table->cluster_map[2] = FAT32_FAT_END_OF_FILE;
+
+    // put the entry as the first entry
+    dir_table->table[0] = dirEntry;
+}
+
+bool is_empty_storage(void){
+    /* initiate buffer that containt boot sector*/
+    uint8_t temp[BLOCK_SIZE];
+    /* read dan put temp to buffer sector boot*/
+    read(temp,BOOT_SECTOR,1);
+    /* compare, if buffer containt not equal fs_signature return true*/
+    return memcmp(FAT32DriverState.boot_sector, fs_signature, BLOCK_SIZE) != 0;
+}
+
+void create_fat32(void){
+    /*write the file system signature to the boot sector (cluster 0)*/ 
+    write_blocks(fs_signature, BOOT_SECTOR, 1);
+    // initialize and write FAT to cluster 1
+    uint32_t fat_table[3] = {CLUSTER_0_VALUE, CLUSTER_1_VALUE, FAT32_FAT_END_OF_FILE};
+    write_clusters(fat_table, 1, 1);
+    // initialize root directory and write it to cluster 2
+    struct FAT32DirectoryTable rootDirectory = {
+        .table = {
+            {
+            .name = {'r','o','o','t'},
+            .attribute = ATTR_SUBDIRECTORY,
+            .user_attribute = UATTR_NOT_EMPTY,
+            .cluster_high = 0x00,
+            .cluster_low = 0x02,
+            .filesize = 0 
+            }
+        }
+    };
+    write_clusters(rootDirectory.table, 2, 1);
+}
+
+void initialize_filesystem_fat32(void){
+    // if empty storage, create new file system, else load the FAT to driverState
+    if (is_empty_storage()) {
+        create_fat32();
+    } 
+    else {
+        read_clusters(&driverState.fat_table, 1, 1);
+    }
+}
+
+void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count){
     write_blocks(ptr, cluster_to_lba(cluster_number), CLUSTER_BLOCK_COUNT*cluster_count);
 }
 
-void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
+void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count){
     read_blocks(ptr, cluster_to_lba(cluster_number), CLUSTER_BLOCK_COUNT*cluster_count);
 }
 
-void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uint32_t parent_dir_cluster) {
-}
+/* Additional Operation */
 
-bool is_empty_storage(void) {
-}
+uint32_t divceil(uint32_t pembilang, uint32_t penyebut){
+  uint32_t cmp = pembilang / penyebut;
 
-void create_fat32(void) {
-}
+  if (pembilang % penyebut == 0)
+    return cmp;
 
-void initialize_filesystem_fat32(void) {
+  return cmp + 1;
 }
 
 /* Additional Operation */
