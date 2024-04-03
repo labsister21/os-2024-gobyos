@@ -4,7 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "header/driver/disk.h"
+#include "../driver/disk.h"
+#include "../stdlib/string.h"
+#include "../stdlib/stdmem.h"
 
 /**
  * FAT32 - IF2230 edition - 2024
