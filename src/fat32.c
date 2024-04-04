@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include "string.h"
 #include "header/filesystem/fat32.h"
 
 const uint8_t fs_signature[BLOCK_SIZE] = {
@@ -14,12 +13,10 @@ const uint8_t fs_signature[BLOCK_SIZE] = {
 };
 
 /* struct to save the file system driver state */
-struct FAT32DriverState FAT32DriverState = {};
-
-/* convert cluster to LBA(Logical Block Addressing)*/
+struct FAT32DriverState driver;
 
 uint32_t cluster_to_lba(uint32_t cluster) {
-    return CLUSTER_SIZE;
+    return cluster * CLUSTER_BLOCK_COUNT;
 }
 
 void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uint32_t parent_dir_cluster){
@@ -36,10 +33,6 @@ void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uin
         .cluster_low = parent_dir_cluster,
         .filesize = 0,
     };
-    dir_table->cluster_map[0] = CLUSTER_0_VALUE;
-    dir_table->cluster_map[1] = CLUSTER_1_VALUE;
-    dir_table->cluster_map[2] = FAT32_FAT_END_OF_FILE;
-
     // put the entry as the first entry
     dir_table->table[0] = dirEntry;
 }
@@ -48,9 +41,9 @@ bool is_empty_storage(void){
     /* initiate buffer that containt boot sector*/
     uint8_t temp[BLOCK_SIZE];
     /* read dan put temp to buffer sector boot*/
-    read(temp,BOOT_SECTOR,1);
+    read_blocks(temp,BOOT_SECTOR,1);
     /* compare, if buffer containt not equal fs_signature return true*/
-    return memcmp(FAT32DriverState.boot_sector, fs_signature, BLOCK_SIZE) != 0;
+    return memcmp(temp, fs_signature, BLOCK_SIZE) != 0;
 }
 
 void create_fat32(void){
@@ -81,7 +74,7 @@ void initialize_filesystem_fat32(void){
         create_fat32();
     } 
     else {
-        read_clusters(&driverState.fat_table, 1, 1);
+        read_clusters(&driver.fat_table, 1, 1);
     }
 }
 
@@ -93,18 +86,8 @@ void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count){
     read_blocks(ptr, cluster_to_lba(cluster_number), CLUSTER_BLOCK_COUNT*cluster_count);
 }
 
-/* Additional Operation */
 
-uint32_t divceil(uint32_t pembilang, uint32_t penyebut){
-  uint32_t cmp = pembilang / penyebut;
-
-  if (pembilang % penyebut == 0)
-    return cmp;
-
-  return cmp + 1;
-}
-
-/* Additional Operation */
+/* Operation */
 
 uint32_t divceil(uint32_t pembilang, uint32_t penyebut){
   uint32_t cmp = pembilang / penyebut;
