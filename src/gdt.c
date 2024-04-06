@@ -8,14 +8,106 @@
 struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
         {
-           0, 0, 0, 0, 0, 0, 0, 0
+            // Null Descriptor
+            .segment_low = 0x0000,
+            .base_low = 0x0000,
+
+            .base_mid = 0x00,
+            .type_bit = 0x00,
+            .non_system = 0x00,
+            .dpl = 0x00,
+            .present = 0x00,
+            .limit_high = 0x00,
+            .available = 0x00,
+            .reserved = 0x00,
+            .opsize = 0x00,
+            .granularity = 0x00,
+            .base_high = 0x00,
         },
         {
-            0xFFFF, 0, 0x9A, 1, 0, 1, 0, 1, 1
+            // Kernel code segment
+            .segment_low = 0xFFFF,
+            .base_low = 0x0000,
+
+            .base_mid = 0x00,
+            .type_bit = 0xA,
+            .non_system = 0x01,
+            .dpl = 0x00,
+            .present = 0x01,
+            .limit_high = 0xF,
+            .available = 0x00,
+            .reserved = 0x00,
+            .opsize = 0x01,
+            .granularity = 0x01,
+            .base_high = 0x00,
         },
         {
-            0xFFFF, 0, 0x92, 1, 0, 1, 0, 1, 1
-        }
+            // Kernel data segment
+            .segment_low = 0xFFFF,
+            .base_low = 0x0000,
+
+            .base_mid = 0x00,
+            .type_bit = 0x2,
+            .non_system = 0x01,
+            .dpl = 0x00,
+            .present = 0x01,
+            .limit_high = 0xF,
+            .available = 0x00,
+            .reserved = 0x00,
+            .opsize = 0x01,
+            .granularity = 0x01,
+            .base_high = 0x00,
+        },
+        {
+            // User code segment
+            .segment_low = 0xFFFF,
+            .base_low = 0x0000,
+
+            .base_mid = 0x00,
+            .type_bit = 0xA,
+            .non_system = 0x01,
+            .dpl = 0x03,
+            .present = 0x01,
+            .limit_high = 0xF,
+            .available = 0x00,
+            .reserved = 0x00,
+            .opsize = 0x01,
+            .granularity = 0x01,
+            .base_high = 0x00,
+        },
+        {
+            // User data segment
+            .segment_low = 0xFFFF,
+            .base_low = 0x0000,
+
+            .base_mid = 0x00,
+            .type_bit = 0x2,
+            .non_system = 0x01,
+            .dpl = 0x03,
+            .present = 0x01,
+            .limit_high = 0xF,
+            .available = 0x00,
+            .reserved = 0x00,
+            .opsize = 0x01,
+            .granularity = 0x01,
+            .base_high = 0x00,
+        },
+        {
+            .segment_low       = 0xFFFF,
+            .base_low          = 0,
+            .base_mid          = 0,
+            .type_bit          = 0x9,
+            .non_system        = 0,    
+            .dpl               = 0,   
+            .present           = 1,   
+            .limit_high        = 0xF,
+            .available         = 0,
+            .reserved          = 0,    
+            .opsize            = 0,    
+            .granularity       = 0,    
+            .base_high         = 0
+        },
+        {0}
     }
 };
 
@@ -25,8 +117,6 @@ struct GlobalDescriptorTable global_descriptor_table = {
  * From: https://wiki.osdev.org/Global_Descriptor_Table, GDTR.size is GDT size minus 1.
  */
 struct GDTR _gdt_gdtr = {
-    // TODO : Implement, this GDTR will point to global_descriptor_table. 
-    //        Use sizeof operator
     .size = sizeof(global_descriptor_table.table) - 1,
     .address = &global_descriptor_table
 };
