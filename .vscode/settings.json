@@ -66,6 +66,8 @@
     "idt.h": "c",
     "string.h": "c",
     "keyboard.h": "c",
-    "fat32.h": "c"
+    "fat32.h": "c",
+    "disk.h": "c",
+    "paging.h": "c"
   }
 }
