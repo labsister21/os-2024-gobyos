@@ -22,3 +22,10 @@ uint8_t strcmp(char *s1, char *s2) {
         return 1;
     }
 }
+
+// void* memset(void *s, uint8_t c, size_t n) {
+//     uint8_t *buf = (uint8_t*) s;
+//     for (size_t i = 0; i < n; i++)
+//         buf[i] = c;
+//     return s;
+// }
