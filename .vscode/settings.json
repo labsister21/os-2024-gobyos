@@ -68,6 +68,7 @@
     "keyboard.h": "c",
     "fat32.h": "c",
     "disk.h": "c",
-    "paging.h": "c"
+    "paging.h": "c",
+    "stdmem.h": "c"
   }
 }

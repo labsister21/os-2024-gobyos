@@ -18,13 +18,17 @@ void kernel_setup(void) {
     framebuffer_clear();
     framebuffer_set_cursor(0, 0);
 
-    int col = 0;
-    keyboard_state_activate();
-    while (true) {
-         char c;
-         get_keyboard_buffer(&c);
-         if (c) framebuffer_write(0, col++, c, 0xF, 0);
-    }
+    // int col = 0;
+    // keyboard_state_activate();
+    // while (true) {
+    //      char c;
+    //      get_keyboard_buffer(&c);
+    //      if (c) framebuffer_write(0, col++, c, 0xF, 0);
+    // }
+
+    struct PageDirectory page_directory;
+    void *virtual_address = (void *)0x12345678; 
+    paging_allocate_user_page_frame(&page_directory, virtual_address);
 
     // struct BlockBuffer b;
     // for (int i = 0; i < 512; i++) b.buf[i] = i % 16;
