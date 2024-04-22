@@ -1,5 +1,5 @@
 global loader                                 ; the entry symbol for ELF
-global enter_protected_mode                   ; go to protected mode
+global load_gdt                               ; load GDT table
 global set_tss_register                       ; set tss register to GDT entry
 global kernel_execute_user_program            ; execute initial user program from kernel
 extern kernel_setup                           ; kernel C entrypoint
@@ -60,7 +60,7 @@ loader_virtual:
 
 section .text
 ; More details: https://en.wikibooks.org/wiki/X86_Assembly/Protected_Mode
-enter_protected_mode:
+load_gdt:
     ; Load GDT from GDTDescriptor
     cli
     mov  eax, [esp+4]
