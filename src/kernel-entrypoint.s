@@ -1,7 +1,7 @@
 global loader                                 ; the entry symbol for ELF
 global enter_protected_mode                   ; go to protected mode
 global set_tss_register                       ; set tss register to GDT entry
-global kernel_execute_user_program            ; execute user program from kernel
+global kernel_execute_user_program            ; execute initial user program from kernel
 extern kernel_setup                           ; kernel C entrypoint
 extern _paging_kernel_page_directory          ; kernel page directory
 
@@ -95,8 +95,11 @@ kernel_execute_user_program:
     mov  es, ax
     mov  fs, ax
     mov  gs, ax
-
-    mov  ecx, [esp+4] ; Save this first (before pushing anything to stack) for last push
+    
+    ; Using iret (return instruction for interrupt) technique for privilege change
+    ; Stack values will be loaded into these register:
+    ; [esp] -> eip, [esp+4] -> cs, [esp+8] -> eflags, [] -> user esp, [] -> user ss
+    mov  ecx, [esp+4] ; Save first (before pushing anything to stack) for last push
     push eax ; Stack segment selector (GDT_USER_DATA_SELECTOR), user privilege
     mov  eax, ecx
     add  eax, 0x400000 - 4
