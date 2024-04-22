@@ -116,6 +116,10 @@ void get_keyboard_buffer(char *buf){
     keyboard_gobyos.keyboard_buffer = '\0';
 }
 
+bool is_keyboard_blocking(void) {
+    return keyboard_gobyos.keyboard_input_on;
+}
+
 /* -- Keyboard Interrupt Service Routine -- */
 
 /**
@@ -197,4 +201,24 @@ void keyboard_isr(void){
         }
     }
     pic_ack(IRQ_KEYBOARD);
+}
+
+void put_char(char c, uint32_t color) {
+    if (c != '\n'){
+        framebuffer_write(cursor_row, cursor_col, c, color, 0);
+        cursor_col += 1;
+    } else {
+        cursor_row += 1;
+        cursor_col = 0;
+        framebuffer_set_cursor(cursor_row, cursor_col);
+    }
+}
+
+void put_(char *buf, int count, uint8_t color) {
+    for (int i = 0; i < count; i++) {
+        if (buf[i] == '\0')
+            break;
+        put_char(buf[i], color);
+    }
+    framebuffer_set_cursor(cursor_row, cursor_col);
 }

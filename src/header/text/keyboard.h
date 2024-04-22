@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "header/cpu/interrupt.h"
+#include "../cpu/interrupt.h"
 
 #define EXT_SCANCODE_UP        0x48
 #define EXT_SCANCODE_DOWN      0x50
@@ -13,6 +13,8 @@
 
 #define KEYBOARD_DATA_PORT     0x60
 #define EXTENDED_SCANCODE_BYTE 0xE0
+
+#define KEYBOARD_BUFFER_SIZE 256
 
 /**
  * keyboard_scancode_1_to_ascii_map[256], Convert scancode values that correspond to ASCII printables
@@ -50,6 +52,8 @@ void keyboard_state_deactivate(void);
 // Get keyboard buffer value and flush the buffer - @param buf Pointer to char buffer
 void get_keyboard_buffer(char *buf);
 
+bool is_keyboard_blocking(void);
+
 /* -- Keyboard Interrupt Service Routine -- */
 
 /**
@@ -57,5 +61,9 @@ void get_keyboard_buffer(char *buf);
  * Will start listen and process keyboard scancode if keyboard_input_on.
  */
 void keyboard_isr(void);
+
+void put_char(char c, uint32_t color);
+
+void put_(char *buf, int count, uint8_t color);
 
 #endif

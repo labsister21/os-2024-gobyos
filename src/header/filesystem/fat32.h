@@ -3,10 +3,20 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include "../driver/disk.h"
 #include "../stdlib/string.h"
 #include "../stdlib/stdmem.h"
+#include "../stdlib/stdtype.h"
+
+// Color declarations
+#define BIOS_LIGHT_GREEN 0b1010
+#define BIOS_GREY        0b0111
+#define BIOS_DARK_GREY   0b1000
+#define BIOS_LIGHT_BLUE  0b1001
+#define BIOS_RED         0b1100
+#define BIOS_BROWN       0b0110
+#define BIOS_WHITE       0b1111
+#define BIOS_BLACK       0b0000
 
 /**
  * FAT32 - IF2230 edition - 2024
@@ -248,5 +258,13 @@ int8_t write(struct FAT32DriverRequest request);
  * @return Error code: 0 success - 1 not found - 2 folder is not empty - -1 unknown
  */
 int8_t delete(struct FAT32DriverRequest request);
+
+/* -- Syscall -- */
+
+void interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) ;
+
+void put(char *buf, uint8_t color);
+
+void initScreen();
 
 #endif
