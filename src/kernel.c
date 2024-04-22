@@ -7,6 +7,9 @@
 #include "header/text/framebuffer.h"
 #include "header/text/keyboard.h"
 #include "header/idt.h"
+#include "header/driver/disk.h"
+#include "header/filesystem/fat32.h"
+#include "header/memory/paging.h"
 
 void kernel_setup(void) {
     load_gdt(&_gdt_gdtr);
