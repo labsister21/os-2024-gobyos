@@ -1,10 +1,14 @@
 #include "header/cpu/gdt.h"
+#include "header/cpu/interrupt.h"
 
 /**
  * global_descriptor_table, predefined GDT.
  * Initial SegmentDescriptor already set properly according to Intel Manual & OSDev.
  * Table entry : [{Null Descriptor}, {Kernel Code}, {Kernel Data (variable, etc)}, ...].
  */
+
+
+
 struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
         {
@@ -120,3 +124,10 @@ struct GDTR _gdt_gdtr = {
     .size = sizeof(global_descriptor_table.table) - 1,
     .address = &global_descriptor_table
 };
+
+void gdt_install_tss(void) {
+    uint32_t base = (uint32_t) &_interrupt_tss_entry;
+    global_descriptor_table.table[5].base_high = (base & (0xFF << 24)) >> 24;
+    global_descriptor_table.table[5].base_mid = (base & (0xFF << 16)) >> 16;
+    global_descriptor_table.table[5].base_low = base & 0xFFFF;
+}

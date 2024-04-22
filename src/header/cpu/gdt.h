@@ -4,7 +4,6 @@
 #include <stdint.h>
 #define GDT_USER_CODE_SEGMENT_SELECTOR 0x18
 #define GDT_USER_DATA_SEGMENT_SELECTOR 0x20
-#define GDT_TSS_SELECTOR 
 
 // Some GDT Constant
 #define GDT_MAX_ENTRY_COUNT 32

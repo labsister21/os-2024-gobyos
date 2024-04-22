@@ -1,6 +1,7 @@
 #include "header/cpu/interrupt.h"
 #include "header/text/keyboard.h"
 #include "header/cpu/portio.h"
+#include "header/filesystem/fat32.h"
 
 void io_wait(void) {
     out(0x80, 0);
@@ -40,13 +41,45 @@ void activate_keyboard_interrupt(void) {
 
 void main_interrupt_handler(struct InterruptFrame frame) {
     switch (frame.int_number) {
-        case PIC1 + IRQ_KEYBOARD:
-            keyboard_isr();
-            break;
+    case PIC1_OFFSET + IRQ_KEYBOARD:
+    keyboard_isr();
+    break;
+    case 0x30:
+    syscall(frame);
+    break;
     }
 }
+
+void syscall(struct InterruptFrame frame) {
+    if (frame.cpu.general.eax == 0) {
+    *((int8_t*) frame.cpu.general.ecx) = read( *(struct FAT32DriverRequest*) frame.cpu.general.ebx );
+    } else if (frame.cpu.general.eax == 1) {
+    *((int8_t*) frame.cpu.general.ecx) = read_directory( *(struct FAT32DriverRequest*) frame.cpu.general.ebx );
+    } else if (frame.cpu.general.eax == 2) {
+    *((int8_t*) frame.cpu.general.ecx) = write( *(struct FAT32DriverRequest*) frame.cpu.general.ebx );
+    } else if (frame.cpu.general.eax == 3) {
+    *((int8_t*) frame.cpu.general.ecx) = delete( *(struct FAT32DriverRequest*) frame.cpu.general.ebx );
+    } else if (frame.cpu.general.eax == 4) {
+        keyboard_state_activate();
+        while (is_keyboard_blocking());
+        char buf[KEYBOARD_BUFFER_SIZE];
+        get_keyboard_buffer(buf);
+        memcpy((char*) frame.cpu.general.ebx, buf, frame.cpu.general.ecx);
+    } else if (frame.cpu.general.eax == 5) {
+        put_char(
+        (char) frame.cpu.general.ebx,
+        frame.cpu.general.ecx ); 
+    } else if (frame.cpu.general.eax == 6) {
+        put_(
+        (char*) frame.cpu.general.ebx,
+        frame.cpu.general.ecx,
+        frame.cpu.general.edx
+        ); 
+    }
+}
+
 struct TSSEntry _interrupt_tss_entry = {
-    .ss0  = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
+    .ss0 = 0x10
 };
 
 void set_tss_kernel_current_stack(void) {
@@ -54,5 +87,5 @@ void set_tss_kernel_current_stack(void) {
     // Reading base stack frame instead esp
     __asm__ volatile ("mov %%ebp, %0": "=r"(stack_ptr) : /* <Empty> */);
     // Add 8 because 4 for ret address and other 4 is for stack_ptr variable
-    _interrupt_tss_entry.esp0 = stack_ptr + 8; 
+    _interrupt_tss_entry.esp0 = stack_ptr + 8;
 }
