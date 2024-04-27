@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include "header/filesystem/fat32.h"
 #include "header/stdlib/string.h"
+#include "header/driver/disk.h"
+#include "header/stdlib/stdtype.h"
 
 void interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -12,17 +14,49 @@ void interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("int $0x30");
 }
 
-void put(char *buf, uint8_t color){
+void print(char *buf, uint8_t color){
     interrupt(5, (uint32_t) buf, strlen(buf), color);
 }
 
-int main(void) {
 
+int main(void) {
+    char buf[255];
+    buf[254] = '\0';
     while (true) {
-        put("GobyoS-IF2230", BIOS_LIGHT_GREEN);
-        put(":", BIOS_GREY);
-    }
+        print("GobyOS-IF2230", BIOS_LIGHT_GREEN);
+        print(":", BIOS_GREY);
+        char *arg = buf;
+        uint8_t len;
+        if (strcmp(arg, "cd")==1){
+
+        } 
+        else if (!strcmp(arg, "mkdir")==1){
+
+        }
+        else if (strcmp(arg, "ls")==1){
+
+        }
+        else if (strcmp(arg, "cp")==1){
+
+        }
+        else if (strcmp(arg, "cat")==1){
+
+        }
+        else if (strcmp(arg, "mv")==1){
+
+        }
+        else if (strcmp(arg, "rm")==1){
+
+        }
+        else if (strcmp(arg, "cp")==1){
+
+        }
+        else if (strcmp(arg, "find")==1){
+
+        }
     return 0;
     }
+}
+    
 
         
