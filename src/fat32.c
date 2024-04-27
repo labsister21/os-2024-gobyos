@@ -250,7 +250,7 @@ int8_t write(struct FAT32DriverRequest request){
 
         // Tulis data file ke dalam cluster-cluster yang tersedia
         for (uint16_t i = 1; i <= count; i++){
-            write_clusters(request.buf + i * CLUSTER_SIZE, loc[i], 1);
+            write_clusters(request.buf + i * CLUSTER_SIZE, loc[i-1], 1);
             if (i == count){
                 driver.fat_table.cluster_map[loc[i-1]] = FAT32_FAT_END_OF_FILE; // akhir file
             }
