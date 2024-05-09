@@ -26,7 +26,7 @@ static struct PageManagerState page_manager_state = {
         [1 ... PAGE_FRAME_MAX_COUNT-1] = false
     },
     // TODO: Initialize page manager state properly
-    .free_page_frame_count = PAGE_FRAME_MAX_COUNT - 1,
+    .free_page_frame_count = PAGE_FRAME_MAX_COUNT,
 };
 
 void update_page_directory_entry(
@@ -46,14 +46,14 @@ void flush_single_tlb(void *virtual_addr) {
 }
 
 /* --- Memory Management --- */
-// TODO: Implement
+ // TODO: Implement
 bool paging_allocate_check(uint32_t amount) {
     // TODO: Check whether requested amount is available
     return amount <= page_manager_state.free_page_frame_count;
 }
 
 
-bool paging_allocate_user_page_frame(struct PageDirectory *page_dir, void *virtual_addr) {
+bool paging_allocate_user_page_frame(struct PageDirectory* page_dir, void* virtual_addr) {
     /*
      * TODO: Find free physical frame and map virtual frame into it
      * - Find free physical frame in page_manager_state.page_frame_map[] using any strategies
@@ -63,20 +63,35 @@ bool paging_allocate_user_page_frame(struct PageDirectory *page_dir, void *virtu
      *     > write bit      true
      *     > user bit       true
      *     > pagesize 4 mb  true
-     */ 
+     */
+
     uint32_t physical_addr = (uint32_t)page_manager_state.free_page_frame_count;
 
     if (!paging_allocate_check(physical_addr)) {
         return false;
     }
+
+
+    struct PageDirectoryEntryFlag userFlag = {
+        .present_bit = 1,
+        .read_write = 1,
+        .user_supervisor = 1,
+        .page_size = 1,
+    };
+    update_page_directory_entry(page_dir, (uint32_t*)physical_addr, virtual_addr, userFlag);
+    page_manager_state.page_frame_map[PAGE_FRAME_MAX_COUNT - page_manager_state.free_page_frame_count] = true;
+    page_manager_state.free_page_frame_count--;
+
+    return true;
 }
 
-bool paging_free_user_page_frame(struct PageDirectory *page_dir, void *virtual_addr) {
-    /* 
+bool paging_free_user_page_frame(struct PageDirectory* page_dir, void* virtual_addr) {
+    /*
      * TODO: Deallocate a physical frame from respective virtual address
      * - Use the page_dir.table values to check mapped physical frame
      * - Remove the entry by setting it into 0
      */
+
     uint32_t page_index = ((uint32_t)virtual_addr >> 22) & 0x3FF;
     struct PageDirectoryEntryFlag emptyFlag = {
         .present_bit = 0,
