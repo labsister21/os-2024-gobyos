@@ -10,4 +10,6 @@ uint8_t strcmp(char *s1, char *s2);
 
 void clear(void *pointer, size_t n);
 
+void strcpy(char *str_dest, char *str_src);
+
 #endif

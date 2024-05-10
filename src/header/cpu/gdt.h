@@ -2,6 +2,8 @@
 #define _GDT_H
 
 #include <stdint.h>
+#include "interrupt.h"
+
 #define GDT_USER_CODE_SEGMENT_SELECTOR 0x18
 #define GDT_USER_DATA_SEGMENT_SELECTOR 0x20
 

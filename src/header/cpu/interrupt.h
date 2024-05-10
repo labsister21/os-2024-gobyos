@@ -59,6 +59,7 @@
 #define IRQ_PRIMARY_ATA  14
 #define IRQ_SECOND_ATA   15
 
+#define PAGE_FAULT       0xe
 
 /**
  * CPURegister, store CPU registers values.

@@ -1,5 +1,4 @@
 #include "header/cpu/gdt.h"
-#include "header/cpu/interrupt.h"
 
 /**
  * global_descriptor_table, predefined GDT.
@@ -97,17 +96,16 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .base_high = 0x00,
         },
         {
-            .segment_low       = 0xFFFF,
+            .segment_low       = sizeof(struct TSSEntry),
             .base_low          = 0,
             .base_mid          = 0,
             .type_bit          = 0x9,
             .non_system        = 0,    
             .dpl               = 0,   
             .present           = 1,   
-            .limit_high        = 0xF,
-            .available         = 0,
+            .limit_high        = (sizeof(struct TSSEntry) & (0xF << 16)) >> 16,
             .reserved          = 0,    
-            .opsize            = 0,    
+            .opsize            = 1,    
             .granularity       = 0,    
             .base_high         = 0
         },

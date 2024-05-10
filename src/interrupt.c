@@ -3,6 +3,8 @@
 #include "header/cpu/portio.h"
 #include "header/filesystem/fat32.h"
 
+
+
 void io_wait(void) {
     out(0x80, 0);
 }
@@ -13,6 +15,12 @@ void pic_ack(uint8_t irq) {
 }
 
 void pic_remap(void) {
+    uint8_t a1, a2;
+
+    // Save masks
+    a1 = in(PIC1_DATA); 
+    a2 = in(PIC2_DATA);
+
     // Starts the initialization sequence in cascade mode
     out(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
@@ -33,34 +41,50 @@ void pic_remap(void) {
     // Disable all interrupts
     out(PIC1_DATA, PIC_DISABLE_ALL_MASK);
     out(PIC2_DATA, PIC_DISABLE_ALL_MASK);
+
+    // Restore masks
+    out(PIC1_DATA, a1);
+    out(PIC2_DATA, a2);
 }
 
 void activate_keyboard_interrupt(void) {
     out(PIC1_DATA, in(PIC1_DATA) & ~(1 << IRQ_KEYBOARD));
+    out(PIC2_DATA, PIC_DISABLE_ALL_MASK);
 }
 
 void main_interrupt_handler(struct InterruptFrame frame) {
     switch (frame.int_number) {
+    case PAGE_FAULT:
+        __asm__("hlt");
+        break;
+    case PIC1_OFFSET + IRQ_TIMER:
+        pic_ack(0);
+        break;
     case PIC1_OFFSET + IRQ_KEYBOARD:
-    keyboard_isr();
-    break;
+        keyboard_isr();
+        break;
     case 0x30:
-    syscall(frame);
-    break;
+        syscall(frame);
+        break;
     }
 }
 
 void syscall(struct InterruptFrame frame) {
     if (frame.cpu.general.eax == 0) {
-    *((int8_t*) frame.cpu.general.ecx) = read( *(struct FAT32DriverRequest*) frame.cpu.general.ebx );
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) frame.cpu.general.ebx;
+        *((int8_t*) frame.cpu.general.ecx) = read(request);
     } else if (frame.cpu.general.eax == 1) {
-    *((int8_t*) frame.cpu.general.ecx) = read_directory( *(struct FAT32DriverRequest*) frame.cpu.general.ebx );
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) frame.cpu.general.ebx;
+        *((int8_t*) frame.cpu.general.ecx) = read_directory(request);
     } else if (frame.cpu.general.eax == 2) {
-    *((int8_t*) frame.cpu.general.ecx) = write( *(struct FAT32DriverRequest*) frame.cpu.general.ebx );
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) frame.cpu.general.ebx;
+        *((int8_t*) frame.cpu.general.ecx) = write(request);
     } else if (frame.cpu.general.eax == 3) {
-    *((int8_t*) frame.cpu.general.ecx) = delete( *(struct FAT32DriverRequest*) frame.cpu.general.ebx );
+       struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) frame.cpu.general.ebx;
+        *((int8_t*) frame.cpu.general.ecx) = delete(request);
     } else if (frame.cpu.general.eax == 4) {
         keyboard_state_activate();
+        __asm__("sti");
         while (is_keyboard_blocking());
         char buf[KEYBOARD_BUFFER_SIZE];
         get_keyboard_buffer(buf);

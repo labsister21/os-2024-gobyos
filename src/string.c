@@ -30,3 +30,12 @@ uint8_t strcmp(char *s1, char *s2) {
     }
 }
 
+void strcpy(char *str_dest, char *str_src){
+    int i = 0;
+    while(str_src[i]!='\0'){
+        str_dest[i] = str_src[i];
+        i++;
+    }
+    str_dest[i] = '\0';
+    return;
+}

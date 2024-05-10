@@ -3,6 +3,8 @@
   "files.associations": {
     "mkdir.h": "c",
     "stdint.h": "c",
-    "stdbool.h": "c"
+    "stdbool.h": "c",
+    "fat32.h": "c",
+    "stdmem.h": "c"
   },
 }
