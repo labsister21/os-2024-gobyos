@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "header/filesystem/fat32.h"
+#include "header/filesystem/user-shell.h"
 #include "header/stdlib/string.h"
 #include "header/driver/disk.h"
 #include "header/stdlib/stdtype.h"
@@ -18,53 +18,45 @@ void print(char *buf, uint8_t color){
     interrupt(5, (uint32_t) buf, strlen(buf), color);
 }
 
-
 int main(void) {
-    // char buf[255];
-    // buf[254] = '\0';
-    char args_val[2048];
-    // int args_info[128][2];
-    // char path_str[2048];
+    char arg[26];
 
-   print("GobyOS-IF2230", BIOS_LIGHT_GREEN);
-    interrupt (4, (uint32_t) args_val, 2048, 0x0);
-    interrupt(7, 0, 0, 0);
     while (true) {
         print("GobyOS-IF2230", BIOS_LIGHT_GREEN);
         print(":", BIOS_GREY);
-        interrupt (4, (uint32_t) args_val, 2048, 0x0);
-        interrupt(7, 0, 0, 0);
-        // char *arg = buf;`
-        // uint8_t len;
-        // if (strcmp(arg, "cd")==1){
+        interrupt (4, (uint32_t) arg, 26, 0x0);
+        if (strcmp(arg, "cd")==0){
 
-        // } 
-        // else if (!strcmp(arg, "mkdir")==1){
+        } 
+        else if (strcmp(arg, "mkdir")==0){
 
-        // }
-        // else if (strcmp(arg, "ls")==1){
+        }
+        else if (strcmp(arg, "ls")==0){
 
-        // }
-        // else if (strcmp(arg, "cp")==1){
+        }
+        else if (strcmp(arg, "cp")==0){
 
-        // }
-        // else if (strcmp(arg, "cat")==1){
+        }
+        else if (strcmp(arg, "cat")==0){
 
-        // }
-        // else if (strcmp(arg, "mv")==1){
+        }
+        else if (strcmp(arg, "mv")==0){
 
-        // }
-        // else if (strcmp(arg, "rm")==1){
+        }
+        else if (strcmp(arg, "rm")==0){
 
-        // }
-        // else if (strcmp(arg, "cp")==1){
+        }
+        else if (strcmp(arg, "cp")==0){
 
-        // }
-        // else if (strcmp(arg, "find")==1){
+        }
+        else if (strcmp(arg, "find")==0){
 
-        // }
-    return 0;
+        }
+        else{
+            print("Invalid command !\n", BIOS_RED);
+        }
     }
+     return 0;
 }
     
 

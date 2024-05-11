@@ -5,6 +5,13 @@
     "stdint.h": "c",
     "stdbool.h": "c",
     "fat32.h": "c",
-    "stdmem.h": "c"
+    "stdmem.h": "c",
+    "stdtype.h": "c",
+    "string.h": "c",
+    "framebuffer.h": "c",
+    "disk.h": "c",
+    "user-shell.h": "c",
+    "keyboard.h": "c",
+    "interrupt.h": "c"
   },
 }

@@ -64,6 +64,8 @@ void keyboard_isr(void);
 
 void put_char(char c, uint32_t color);
 
-void put_(char *buf, int count, uint8_t color);
+void puts_char(char *buf, uint32_t count, uint32_t color);
+
+void reset_keyboard_position();
 
 #endif

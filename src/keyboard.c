@@ -16,6 +16,7 @@ struct KeyboardDriverState keyboard_gobyos = {
 
 static uint8_t cursor_row = 0;
 static uint8_t cursor_col = 0;
+static uint8_t cursor_col_threshold = 0;
 
 
 const char keyboard_scancode_1_to_ascii_map[256] = {
@@ -158,20 +159,21 @@ void keyboard_isr(void){
           // Handle special ASCII characters
           if (ascii_char == '\n') {
             // newline handler
-              if (cursor_row <= 24) {
-                // pindahin kursor ke nextline
-                cursor_row++;
-                cursor_col = 0;  // reset cursor
-              }
-              framebuffer_set_cursor(cursor_row, cursor_col);
+                if (cursor_row <= 24) {
+                    // pindahin kursor ke nextline
+                    cursor_row++;
+                    cursor_col = 0;  // reset cursor
+                }
+                framebuffer_set_cursor(cursor_row, cursor_col_threshold);
+                keyboard_state_deactivate();
           } else if (ascii_char == '\b') {
             // backspace handler
             // pindahin cursor 1 kebelakang
-            if (cursor_col > 0) {
+            if (cursor_col > cursor_col_threshold) {
                 cursor_col--;
                 framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
                 framebuffer_set_cursor(cursor_row, cursor_col);
-            } else if (cursor_row > 0) {
+            } else if (cursor_row > cursor_col_threshold) {
                 cursor_col = 79;  // pindahin ke previous line (row sblomnya)
                 cursor_row--;
                 framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
@@ -214,11 +216,22 @@ void put_char(char c, uint32_t color) {
     }
 }
 
-void put_(char *buf, int count, uint8_t color) {
-    for (int i = 0; i < count; i++) {
-        if (buf[i] == '\0')
-            break;
-        put_char(buf[i], color);
-    }
-    framebuffer_set_cursor(cursor_row, cursor_col);
+void puts_char(char *buf, uint32_t count, uint32_t color) {
+    for (uint8_t i = 0; i < count; i++) {
+        if (buf[i] == '\n') {
+        cursor_row++;
+        cursor_col = 0;
+        } else {
+        framebuffer_write(cursor_row, cursor_col + i, buf[i], color, 0);
+        if(i == count - 1) {
+            cursor_col = cursor_col + count;
+        }
+        }
+        cursor_col_threshold = cursor_col;
+  }
+}
+
+void reset_keyboard_position() {
+    cursor_row = 0;
+    cursor_col = 0;
 }

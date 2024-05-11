@@ -1,6 +1,7 @@
 #include "header/cpu/interrupt.h"
 #include "header/text/keyboard.h"
 #include "header/cpu/portio.h"
+#include "header/text/framebuffer.h"
 #include "header/filesystem/fat32.h"
 
 
@@ -90,16 +91,16 @@ void syscall(struct InterruptFrame frame) {
         get_keyboard_buffer(buf);
         memcpy((char*) frame.cpu.general.ebx, buf, frame.cpu.general.ecx);
     } else if (frame.cpu.general.eax == 5) {
-        put_char(
-        (char) frame.cpu.general.ebx,
-        frame.cpu.general.ecx ); 
-    } else if (frame.cpu.general.eax == 6) {
-        put_(
+        puts_char(
         (char*) frame.cpu.general.ebx,
         frame.cpu.general.ecx,
-        frame.cpu.general.edx
-        ); 
-    }
+        frame.cpu.general.edx ); 
+    } else if (frame.cpu.general.eax == 6) {
+        read_clusters((struct FAT32DirectoryTable*) frame.cpu.general.ebx, frame.cpu.general.ecx, 1);
+    } else if (frame.cpu.general.eax == 7) {
+        framebuffer_clear();
+        reset_keyboard_position();
+    } 
 }
 
 struct TSSEntry _interrupt_tss_entry = {
