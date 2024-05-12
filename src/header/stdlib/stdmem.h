@@ -1,7 +1,7 @@
 #ifndef _STDMEM_H
 #define _STDMEM_H
 
-#include "stdtype.h"
+#include <stddef.h>
 
 void* memcpy(void* restrict dest, const void* restrict src, size_t n);
 

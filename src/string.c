@@ -1,5 +1,12 @@
 #include "header/stdlib/string.h"
 
+void clear(void *pointer, size_t n) {
+    uint8_t *ptr       = (uint8_t*) pointer;
+    for (size_t i = 0; i < n; i++) {
+        ptr[i] = 0x00;
+    }
+}
+
 size_t strlen(char *string) {
     size_t len = 0;
     while (string[len] != '\0'){

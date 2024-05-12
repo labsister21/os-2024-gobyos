@@ -71,7 +71,27 @@ iso: kernel
 
 inserter:
 	@$(CC) -Wno-builtin-declaration-mismatch -g -I$(SOURCE_FOLDER) \
-		$(SOURCE_FOLDER)/stdlib/string.c \
-		$(SOURCE_FOLDER)/filesystem/fat32.c \
-		$(SOURCE_FOLDER)/external/external-inserter.c \
+		$(SOURCE_FOLDER)/stdmem.c \
+		$(SOURCE_FOLDER)/string.c \
+		$(SOURCE_FOLDER)/fat32.c \
+		$(SOURCE_FOLDER)/external-inserter.c \
 		-o $(OUTPUT_FOLDER)/inserter
+		
+user-shell:
+	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/crt0.s -o crt0.o
+	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/user-shell.c -o user-shell.o
+	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/string.c -o string.o
+	@$(CC) $(CFLAGS)  -fno-pie $(SOURCE_FOLDER)/stdmem.c -o stdmem.o
+	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 \
+		crt0.o user-shell.o string.o stdmem.o -o $(OUTPUT_FOLDER)/shell
+	@echo Linking object shell object files and generate flat binary...
+	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386\
+		crt0.o user-shell.o string.o stdmem.o -o $(OUTPUT_FOLDER)/shell_elf
+	@echo Linking object shell object files and generate ELF32 for debugging...
+# @size --target=binary bin/shell
+	@rm -f *.o
+	
+	
+insert-shell: inserter user-shell
+	@echo Inserting shell into root directory...
+	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
