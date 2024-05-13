@@ -33,7 +33,23 @@ void kernel_setup(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0x100000,
     };
+
     read(request);
+    struct ClusterBuffer cbuf[2];
+
+    memcpy(cbuf, "OS matahariku\nOS cintaku\ni love u OS\n", 132);
+    request.buf = cbuf;
+    clear(&request.name, 8);
+    clear(&request.ext, 3);
+    memcpy(&request.name, "cintaos", 7);
+    memcpy(&request.ext, "txt", 3);
+    request.buffer_size = CLUSTER_SIZE;
+    write(request);
+
+    clear(&request.name, 8);
+    memcpy(cbuf, "os tubes favorit\n", 20);
+    memcpy(&request.name, "lain", 4);
+    write(request);
 
     // Set TSS $esp pointer and jump into shell 
     set_tss_kernel_current_stack();

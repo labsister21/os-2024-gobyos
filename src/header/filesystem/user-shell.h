@@ -29,4 +29,8 @@ void interrupt (uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
 // Put chars to screen
 void print (char* buf, uint8_t color);
 
+void updateDirectoryTable(uint32_t cluster_number);
+
+int findEntryName(char* name);
+
 #endif

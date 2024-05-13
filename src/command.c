@@ -3,60 +3,89 @@
 #include "header/stdlib/stdtype.h"
 
 void cat(char *fileName){
-    struct ClusterBuffer cl           = {0};
-    struct FAT32DriverRequest request = {
-        .buf = &cl,
-        .name = "\0\0\0\0\0\0\0",
-        .ext = "\0\0\0",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .buffer_size = 4 * CLUSTER_SIZE,
-    };
-
+    uint32_t search_directory_number = ROOT_CLUSTER_NUMBER;
     char srcName[8] = {'\0','\0','\0','\0','\0','\0','\0','\0'};
     char srcExt[3] = {'\0','\0','\0'};
+    updateDirectoryTable(search_directory_number);
+
+
     int index = 0;
     int buf_len = strlen(fileName);
-    for (int i = 0; i <= buf_len; i++) {
-        if (fileName[i] == '.'){
+    bool valid = false;
+    for (int i = 0; i < buf_len; i++) {
+        if (fileName[i] == '.'){ 
             index = i;
+            valid = true;
+            splitname(fileName, srcName, srcExt, index+1);
             break;
         }
-        index = i;
     }
-
-    for (uint8_t j = 0; j < index; j++) {
-        srcName[j] = fileName[j];
-    }
-    srcName[index] = '\0';
-    memcpy((request.name), srcName, 8);
-    if(buf_len!=index){
-        // buat extension
-        for (uint8_t i = 1; i < (strlen(fileName) - index); i++) {
-            srcExt[i] = fileName[i + index];
+ 
+    int entry_index = findEntryName(srcName);
+    if (entry_index != -1) {
+        if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
+            search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
+            updateDirectoryTable(search_directory_number);
+        } else if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
+            search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
+            updateDirectoryTable(search_directory_number);
         }
-        srcExt[strlen(fileName) - index] = '\0';
-        memcpy((request.ext), srcExt, 3);
     }
 
+    if(valid){
+        int32_t retcode;
 
-    int32_t retcode;
+        struct ClusterBuffer cl           = {0};
+        struct FAT32DriverRequest request = {
+            .buf = &cl,
+            .name = "\0\0\0\0\0\0\0",
+            .ext = "\0\0\0",
+            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .buffer_size = 4 * CLUSTER_SIZE,
+        };
+        
+        memcpy(&(request.name), srcName, 8);
+        memcpy(&(request.ext), srcExt, 3);
+        interrupt(0, (uint32_t) &request, (uint32_t) &retcode, 0x0);
 
-    interrupt(0, (uint32_t) &request, (uint32_t) &retcode, 0x0);
-    if (retcode != 0) {
-        print("cat:", BIOS_RED);
-        switch (retcode) {
-            case 1:
-                print(": Is a directory\n", BIOS_RED);
-                break;
-            case 2:
-                print(": Buffer size is not enough\n", BIOS_RED);
-                break;
-            case 3:
-                print(": No such file or directory\n", BIOS_RED);
-                break;
+        if (retcode != 0 ) {
+            switch (retcode) {
+                case 1:
+                    print("cat : Is a directory\n", BIOS_RED);
+                    break;
+                case 2:
+                    print("cat : Buffer size is not enough\n", BIOS_RED);
+                    break;
+                case 3:
+                    print("cat : No such file or directory\n", BIOS_RED);;
+                    break;
+            }
+        } else {
+                print((char *) &cl, BIOS_BROWN);
         }
-    } else {
-        print(request.buf, BIOS_BROWN);
+    } else{
+        print("cat : No such file or directory\n", BIOS_RED);
     }
+    
 }
 
+void splitname(char* buf, char* first, char* second, int offset) {
+    int len = strlen(buf);
+
+    // buat kata pertama
+    for (int i = 0; i < len; i++) {
+        if(buf[i]=='\0' || buf[i]=='.'){
+            break;
+        }
+        first[i] = buf[i];
+    }
+
+    // buat kata kedua
+    for (int i = 0; i < len - offset; i++) {
+        if(buf[i]=='\0'){
+            break;
+        }
+        second[i] = buf[i + offset];
+    }
+
+}

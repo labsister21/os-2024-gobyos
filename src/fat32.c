@@ -150,7 +150,7 @@ int8_t read_directory(struct FAT32DriverRequest request){
  */
 int8_t read(struct FAT32DriverRequest request){
     // baca cluster yang berisi directory
-    read_clusters(&driverState.dir_table_buf, request.parent_cluster_number, 1);
+    read_clusters(driverState.dir_table_buf.table, request.parent_cluster_number, 1);
 
     struct FAT32DirectoryEntry *t = driverState.dir_table_buf.table;
 
@@ -159,10 +159,13 @@ int8_t read(struct FAT32DriverRequest request){
         return -1;
     }
 
+    read_clusters(driverState.fat_table.cluster_map, FAT_CLUSTER_NUMBER, 1);
+
     // for loop semua entri di direktori
     for (uint8_t i = 1; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry) ; i++) {
         // cek apakah nama file dan direktori sama
-        if (strcmp(t[i].name, request.name)==0 && (strcmp(t[i].ext,request.ext)==0)){
+        if (memcmp(driverState.dir_table_buf.table[i].name, request.name, 8) == 0 &&
+            memcmp(driverState.dir_table_buf.table[i].ext, request.ext, 3) == 0){
             if (t[i].attribute == 1) { // merupakan direktori
                 return 1;
             }
@@ -211,15 +214,15 @@ int8_t write(struct FAT32DriverRequest request){
 
     // cek apakah sudah ada file / folder dengan nama sama
     for (uint8_t i = 1; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
-        if (memcmp(table[i].name, &request.name, 8) == 0) {
-            if (memcmp(&request.ext, table[i].ext, 3) == 0) {
+        if (memcmp(table[i-1].name, &request.name, 8) == 0) {
+            if (memcmp(&request.ext, table[i-1].ext, 3) == 0) {
                 return 1;
             } 
-            if (request.ext[0] == '\0' && table[i].ext[0] == '\0') {
+            if (request.ext[0] == '\0' && table[i-1].ext[0] == '\0') {
                 return 1;
             }
         }
-        if (driverState.dir_table_buf.table[i+1].user_attribute != UATTR_NOT_EMPTY ) {
+        if (driverState.dir_table_buf.table[i-1].user_attribute != UATTR_NOT_EMPTY ) {
             entryRow = i-1;
         }
     }

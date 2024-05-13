@@ -226,13 +226,14 @@ void put_char(char c, uint32_t color) {
 void puts_char(char *buf, uint32_t count, uint32_t color) {
     for (uint8_t i = 0; i < count; i++) {
         if (buf[i] == '\n') {
-        cursor_row++;
-        cursor_col = 0;
+            cursor_row++;
+            cursor_col = 0;
+            framebuffer_set_cursor(cursor_row, cursor_col);
         } else {
-        framebuffer_write(cursor_row, cursor_col + i, buf[i], color, 0);
-        if(i == count - 1) {
-            cursor_col = cursor_col + count;
-        }
+            framebuffer_write(cursor_row, cursor_col + i, buf[i], color, 0);
+            if(i == count - 1) {
+                cursor_col = cursor_col + count;
+            }
         }
         cursor_col_threshold = cursor_col;
   }

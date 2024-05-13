@@ -13,7 +13,7 @@ struct CWDdata {
     uint32_t prevCluster;
 };
 
-
+void splitname(char* buf, char* first, char* second, int offset);
 void cat(char* fileName);
 
 #endif

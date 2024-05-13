@@ -5,6 +5,9 @@
 #include "header/driver/disk.h"
 #include "header/stdlib/stdtype.h"
 
+uint32_t current_directory = ROOT_CLUSTER_NUMBER;
+struct FAT32DirectoryTable dir_table;
+
 void interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
     __asm__ volatile("mov %0, %%ecx" : /* <Empty> */ : "r"(ecx));
@@ -45,6 +48,30 @@ void parser(char *buf, char *firstbuf, char *secondbuf){
     }
 }
 
+void updateDirectoryTable(uint32_t cluster_number) {
+    interrupt(6, (uint32_t) &dir_table, cluster_number, 0x0);
+}
+
+int findEntryName(char* name) {
+    int result = -1;
+
+    int i = 1;
+    bool found = false;
+    while (i < 64 && !found) {
+        if (memcmp(dir_table.table[i].name, name, 8) == 0 && 
+            dir_table.table[i].user_attribute == UATTR_NOT_EMPTY) {
+            result = i;
+            found = true;
+        }
+        else {
+            i++;
+        }
+    }
+
+    return result;
+}
+
+
 
 int main(void) {
     char arg[26];
@@ -57,7 +84,7 @@ int main(void) {
         // clear(arg, 26);
         // clear(cmd, 4);
 
-        print("GobyOS-IF2230", BIOS_LIGHT_GREEN);
+        print("\nGobyOS-IF2230", BIOS_LIGHT_GREEN);
         print(":", BIOS_GREY);
         interrupt (4, (uint32_t) arg, 26, 0x0);
         parser(arg, cmd, args);
@@ -75,7 +102,6 @@ int main(void) {
 
         }
         else if (strcmp(cmd, "cat")==0){
-            // parser(arg, cmd, args);
             cat(args);
         }
         else if (strcmp(cmd, "mv")==0){
@@ -89,7 +115,9 @@ int main(void) {
         }
         else if (strcmp(cmd, "find")==0){
 
-        } 
+        } else{
+            print("Invalid command!\n", BIOS_RED);
+        }
     }
      return 0;
 }
