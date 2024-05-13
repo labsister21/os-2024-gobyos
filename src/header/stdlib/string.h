@@ -12,4 +12,6 @@ void clear(void *pointer, size_t n);
 
 void strcpy(char *str_dest, char *str_src);
 
+void split(char* buf, char* first_section, char* second_section, int offset) ;
+
 #endif

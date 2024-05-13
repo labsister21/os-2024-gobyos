@@ -39,3 +39,19 @@ void strcpy(char *str_dest, char *str_src){
     str_dest[i] = '\0';
     return;
 }
+
+void split(char* buf, char* first, char* second, int offset) {
+    int len = strlen(buf);
+
+    // buat kata pertama
+    for (int i = 0; i < len; i++) {
+        first[i] = buf[i];
+    }
+    first[offset - 1] = '\0';
+
+    // buat kata kedua
+    for (int i = 0; i < len - offset; i++) {
+        second[i] = buf[i + offset];
+    }
+    second[len - offset] = '\0';
+}

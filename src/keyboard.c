@@ -11,7 +11,8 @@ static bool is_capslock = false;
 struct KeyboardDriverState keyboard_gobyos = {
     .read_extended_mode = false,
     .keyboard_input_on = false,
-    .keyboard_buffer = '\0',
+    .buffer_index = 0,
+    .keyboard_buffer = {'\0'},
 };
 
 static uint8_t cursor_row = 0;
@@ -111,10 +112,9 @@ void keyboard_state_deactivate(void){
 
 // Get keyboard buffer value and flush the buffer - @param buf Pointer to char buffer
 void get_keyboard_buffer(char *buf){
-    *buf = keyboard_gobyos.keyboard_buffer;
-
-    // Flush the keyboard buffer
-    keyboard_gobyos.keyboard_buffer = '\0';
+    for (int i = 0; i < KEYBOARD_BUFFER_SIZE; i++) {
+    buf[i] = keyboard_gobyos.keyboard_buffer[i];
+  }
 }
 
 bool is_keyboard_blocking(void) {
@@ -150,7 +150,7 @@ void keyboard_isr(void){
     } 
     
     if (!keyboard_gobyos.keyboard_input_on) {
-        keyboard_gobyos.keyboard_buffer = '\0';
+        keyboard_gobyos.buffer_index = 0;
     } else {
         uint8_t scancode = in(KEYBOARD_DATA_PORT);
         char ascii_char = get_scancode_to_ascii_map()[scancode];
@@ -164,6 +164,8 @@ void keyboard_isr(void){
                     cursor_row++;
                     cursor_col = 0;  // reset cursor
                 }
+                keyboard_gobyos.keyboard_buffer[keyboard_gobyos.buffer_index] = '\0';
+                keyboard_gobyos.buffer_index = 0;
                 framebuffer_set_cursor(cursor_row, cursor_col_threshold);
                 keyboard_state_deactivate();
           } else if (ascii_char == '\b') {
@@ -173,6 +175,9 @@ void keyboard_isr(void){
                 cursor_col--;
                 framebuffer_write(cursor_row, cursor_col, ' ', 0x07, 0x00);
                 framebuffer_set_cursor(cursor_row, cursor_col);
+                if(keyboard_gobyos.buffer_index>0){
+                    keyboard_gobyos.buffer_index--;
+                }
             } else if (cursor_row > cursor_col_threshold) {
                 cursor_col = 79;  // pindahin ke previous line (row sblomnya)
                 cursor_row--;
@@ -196,6 +201,8 @@ void keyboard_isr(void){
                 cursor_col = 0; // reset cursor untuk nextline
                 cursor_row++;
             }
+            keyboard_gobyos.keyboard_buffer[keyboard_gobyos.buffer_index] = ascii_char;
+            keyboard_gobyos.buffer_index++;
             framebuffer_write(cursor_row, cursor_col, ascii_char, 0x07, 0x00);
             cursor_col++;
             framebuffer_set_cursor(cursor_row, cursor_col);

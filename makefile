@@ -80,11 +80,12 @@ user-shell:
 	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/user-shell.c -o user-shell.o
 	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/string.c -o string.o
 	@$(CC) $(CFLAGS)  -fno-pie $(SOURCE_FOLDER)/stdmem.c -o stdmem.o
+	@$(CC) $(CFLAGS)  -fno-pie $(SOURCE_FOLDER)/command.c -o command.o
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 \
-		crt0.o user-shell.o string.o stdmem.o -o $(OUTPUT_FOLDER)/shell
+		crt0.o user-shell.o string.o stdmem.o command.o -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generate flat binary...
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386\
-		crt0.o user-shell.o string.o stdmem.o -o $(OUTPUT_FOLDER)/shell_elf
+		crt0.o user-shell.o string.o stdmem.o command.o -o $(OUTPUT_FOLDER)/shell_elf
 	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary bin/shell
 	@rm -f *.o
