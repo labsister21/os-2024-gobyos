@@ -15,5 +15,7 @@ struct CWDdata {
 
 void splitname(char* buf, char* first, char* second, int offset);
 void cat(char* fileName);
+void cp(char* fileName);
+void rm(char* fileName);
 
 #endif

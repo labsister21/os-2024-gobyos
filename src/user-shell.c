@@ -23,19 +23,21 @@ void print(char *buf, uint8_t color){
 }
 
 void parser(char *buf, char *firstbuf, char *secondbuf){
+    const uint8_t *buf2 = (const uint8_t*) buf;
     int index = 0;
     bool found = false;
+    int len = strlen(buf);
     if (strlen(buf) == 2) {
         index = 2;
-        split(buf, firstbuf, secondbuf, index+1);
+        splitfirst(buf2, firstbuf, index+1);
         found=true;
     }
     else {
-        int buf_len = strlen(buf);
-        for (int i = 0; i < buf_len; i++) {
-            if (buf[i] == ' '){ 
+        for (int i = 0; i < len; i++) {
+            if (buf2[i] == ' ' && !found){ 
                 index = i;
-                split(buf, firstbuf, secondbuf, index+1);
+                memcpy(buf, firstbuf, index+1);
+                splitsecond(buf2, secondbuf, index+1,len);
                 found = true;
             }
         }
@@ -75,19 +77,44 @@ int findEntryName(char* name) {
 
 int main(void) {
     char arg[26];
-    char cmd[12];
-    char args[12];
+    char cmd[5] = {'\0','\0','\0','\0','\0'};
+    char args[15] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 
     while (true) {
 
-        // clear(args, 26);
-        // clear(arg, 26);
-        // clear(cmd, 4);
+        clear(args, 15);
+        clear(arg, 26);
+        clear(cmd, 5);
 
         print("\nGobyOS-IF2230", BIOS_LIGHT_GREEN);
         print(":", BIOS_GREY);
         interrupt (4, (uint32_t) arg, 26, 0x0);
-        parser(arg, cmd, args);
+        const uint8_t *buf2 = (const uint8_t*) arg;
+        int index = 0;
+        bool found = false;
+        int len = strlen(arg);
+
+        if (strlen(arg) == 2) {
+            index = 2;
+            splitfirst(buf2, cmd, index+1);
+            found=true;
+        }
+        else {
+            for (int i = 0; i < len; i++) {
+                if (buf2[i] == ' ' && !found){ 
+                    index = i;
+                    splitfirst(buf2, cmd, index);
+                    found = true;
+                }
+            }
+
+        }
+
+        if (!found){
+            // invalid
+            print("Invalid command!\n", BIOS_RED);
+        }
+
 
         if (strcmp(cmd, "cd")==0){
 
@@ -99,16 +126,18 @@ int main(void) {
 
         }
         else if (strcmp(cmd, "cp")==0){
-
+            splitsecond(buf2, args, index+1,len);
+            cp(args);
         }
         else if (strcmp(cmd, "cat")==0){
+            splitsecond(buf2, args, index+1,len);
             cat(args);
         }
         else if (strcmp(cmd, "mv")==0){
 
         }
         else if (strcmp(cmd, "rm")==0){
-
+            rm(args);
         }
         else if (strcmp(cmd, "cp")==0){
 

@@ -1,4 +1,5 @@
 #include "stdtype.h"
+#include "stdmem.h"
 #include <stddef.h>
 
 #ifndef _STRING_H_
@@ -12,6 +13,8 @@ void clear(void *pointer, size_t n);
 
 void strcpy(char *str_dest, char *str_src);
 
-void split(char* buf, char* first_section, char* second_section, int offset) ;
+void splitfirst(const uint8_t* restrict src, void* first, int offset) ;
+
+void splitsecond(const uint8_t* restrict src, void* second, int offset, int len) ;
 
 #endif

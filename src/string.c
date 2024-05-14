@@ -40,18 +40,13 @@ void strcpy(char *str_dest, char *str_src){
     return;
 }
 
-void split(char* buf, char* first, char* second, int offset) {
-    int len = strlen(buf);
+void splitfirst(const uint8_t* restrict src, void* first, int offset) {
+    const uint8_t *buf2 = (const uint8_t*) src;
+    memcpy(first,buf2,offset);  
+}
 
-    // buat kata pertama
-    for (int i = 0; i < len; i++) {
-        first[i] = buf[i];
-    }
-    first[offset - 1] = '\0';
-
-    // buat kata kedua
-    for (int i = 0; i < len - offset; i++) {
-        second[i] = buf[i + offset];
-    }
-    second[len - offset] = '\0';
+void splitsecond(const uint8_t* restrict src, void* second, int offset, int len) {
+    const uint8_t *buf2 = (const uint8_t*) src;
+    size_t len2 = len-offset;
+    memcpy2(second,buf2,offset,len2);
 }
