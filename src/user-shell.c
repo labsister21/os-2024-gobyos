@@ -102,6 +102,8 @@ int main(void) {
     interrupt (4, (uint32_t) args_val, 2048, 0x0);
     interrupt(7, 0, 0, 0);
 
+    updateDirectoryTable(current_directory);
+
     while (true) {
         clear(path_str, 26);
         clear(args, 15);
@@ -165,7 +167,8 @@ int main(void) {
             cat(args);
         }
         else if (strcmp(cmd, "mv")==0){
-
+            splitsecond(buf2, args, index+1,len);
+            mv(args);
         }
         else if (strcmp(cmd, "rm")==0){
             splitsecond(buf2, args, index+1,len);

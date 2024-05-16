@@ -20,5 +20,6 @@ void rm(char* fileName);
 void ls();
 void mkdir(char* fileName);
 void cd(char* fileName);
+void mv(char* fileName);
 
 #endif

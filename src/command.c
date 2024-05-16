@@ -7,12 +7,9 @@ void cat(char *fileName){
         print("cat: missing destination file operand", BIOS_RED);
     }
     else {
-    uint32_t search_directory_number = ROOT_CLUSTER_NUMBER;
     char srcName[8] = {'\0','\0','\0','\0','\0','\0','\0','\0'};
     char srcExt[3] = {'\0','\0','\0'};
-    updateDirectoryTable(search_directory_number);
-
-
+    
     int index = 0;
     int buf_len = strlen(fileName);
     bool valid = false;
@@ -25,12 +22,10 @@ void cat(char *fileName){
         }
     }
  
+    int search_directory_number = current_directory;
     int entry_index = findEntryName(srcName);
     if (entry_index != -1) {
         if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-            search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-            updateDirectoryTable(search_directory_number);
-        } else if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
             search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
             updateDirectoryTable(search_directory_number);
         }
@@ -39,9 +34,9 @@ void cat(char *fileName){
     if(valid){
         int32_t retcode;
 
-        struct ClusterBuffer cl           = {0};
+        struct ClusterBuffer cat           = {0};
         struct FAT32DriverRequest request = {
-            .buf = &cl,
+            .buf = &cat,
             .name = "\0\0\0\0\0\0\0",
             .ext = "\0\0\0",
 
@@ -52,6 +47,7 @@ void cat(char *fileName){
         memcpy(&(request.name), srcName, 8);
         memcpy(&(request.ext), srcExt, 3);
         interrupt(0, (uint32_t) &request, (uint32_t) &retcode, 0x0);
+        print((char *) &cat, BIOS_BROWN);
 
         if (retcode != 0 ) {
             switch (retcode) {
@@ -65,9 +61,7 @@ void cat(char *fileName){
                     print("cat : No such file or directory\n", BIOS_RED);;
                     break;
             }
-        } else {
-                print((char *) &cl, BIOS_BROWN);
-        }
+        } 
     } else{
         print("cat : No such file or directory\n", BIOS_RED);
     }
@@ -120,8 +114,7 @@ void cp(char* fileName) {
         print("cp: missing destination file operand", BIOS_RED);
     }
     else {
-        uint32_t search_directory_number = ROOT_CLUSTER_NUMBER;
-        updateDirectoryTable(search_directory_number);
+        updateDirectoryTable(current_directory);
 
         index = 0;
         buf_len = strlen(source);
@@ -139,11 +132,11 @@ void cp(char* fileName) {
         int entry_index = findEntryName(srcName);
         if (entry_index != -1) {
             if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-                updateDirectoryTable(search_directory_number);
+                current_directory =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
+                updateDirectoryTable(current_directory);
             } else if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-                updateDirectoryTable(search_directory_number);
+                current_directory =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
+                updateDirectoryTable(current_directory);
             }
         }
 
@@ -152,7 +145,7 @@ void cp(char* fileName) {
             .buf = &cl,
             .name = "\0\0\0\0\0\0\0",
             .ext = "\0\0\0",
-            .parent_cluster_number = search_directory_number,
+            .parent_cluster_number = current_directory,
             .buffer_size = 4 * CLUSTER_SIZE,
         };
 
@@ -192,7 +185,7 @@ void cp(char* fileName) {
                     .buf = &cbuf,
                     .name = "\0\0\0\0\0\0\0\0",
                     .ext = "\0\0\0",
-                    .parent_cluster_number = search_directory_number,
+                    .parent_cluster_number = current_directory,
                     .buffer_size = CLUSTER_SIZE
                 };
 
@@ -230,10 +223,9 @@ void rm(char *fileName){
         print("rm: missing destination file operand", BIOS_RED);
     }
     else {
-        uint32_t search_directory_number = ROOT_CLUSTER_NUMBER;
         char srcName[8] = {'\0','\0','\0','\0','\0','\0','\0','\0'};
         char srcExt[3] = {'\0','\0','\0'};
-        updateDirectoryTable(search_directory_number);
+        updateDirectoryTable(current_directory);
 
 
         int index = 0;
@@ -249,11 +241,11 @@ void rm(char *fileName){
         int entry_index = findEntryName(srcName);
         if (entry_index != -1) {
             if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-                updateDirectoryTable(search_directory_number);
+                current_directory =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
+                updateDirectoryTable(current_directory);
             } else if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-                updateDirectoryTable(search_directory_number);
+                current_directory =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
+                updateDirectoryTable(current_directory);
             }
         }
 
@@ -265,7 +257,7 @@ void rm(char *fileName){
             .name = "\0\0\0\0\0\0\0",
             .ext = "\0\0\0",
 
-            .parent_cluster_number = search_directory_number,
+            .parent_cluster_number = current_directory,
             .buffer_size = 4 * CLUSTER_SIZE,
         };
         
@@ -321,30 +313,28 @@ void mkdir(char *fileName){
     if (strlen(fileName)==0 ) {
         print("mkdir: missing destination file operand", BIOS_RED);
     }else {
-        uint32_t search_directory_number = ROOT_CLUSTER_NUMBER;
-        updateDirectoryTable(search_directory_number);
+        int curr = current_directory;
+        updateDirectoryTable(current_directory);
 
         int entry_index = findEntryName(fileName);
         if (entry_index != -1) {
             if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-                updateDirectoryTable(search_directory_number);
-            } else if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-                updateDirectoryTable(search_directory_number);
-            }
+                current_directory =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
+                updateDirectoryTable(current_directory);
+            } 
         }
 
         struct FAT32DriverRequest reqsrc = {
             .buf = 0,
             .name = "\0\0\0\0\0\0\0",
             .ext = "\0\0\0",
-            .parent_cluster_number = search_directory_number,
+            .parent_cluster_number = current_directory,
             .buffer_size = 0,
         };
 
         memcpy(&(reqsrc.name), fileName, 8);
-
+        current_directory = curr;
+        updateDirectoryTable(curr);
         int32_t retcode;
         interrupt(2, (uint32_t) &reqsrc, (uint32_t) &retcode, 0x0);
 
@@ -362,18 +352,21 @@ void cd(char *fileName){
     if (strlen(fileName)==0 ) {
         print("cd: missing destination file operand", BIOS_RED);
     } else{
-        uint32_t search_directory_number = ROOT_CLUSTER_NUMBER;
-        updateDirectoryTable(search_directory_number);
+        int search_directory_number = current_directory;
+        updateDirectoryTable(current_directory);
+
+        if (memcmp(fileName, "..", 2) == 0) {
+            search_directory_number = (int) ((dir_table.table[0].cluster_high << 16) | dir_table.table[0].cluster_low);
+            updateDirectoryTable(search_directory_number);
+            return;
+        }
 
         int entry_index = findEntryName(fileName);
         if (entry_index != -1) {
             if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-                updateDirectoryTable(search_directory_number);
-            } else if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-                updateDirectoryTable(search_directory_number);
-            }
+                current_directory =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
+                updateDirectoryTable(current_directory);
+            } 
         }
 
         if(entry_index==-1){
@@ -384,13 +377,11 @@ void cd(char *fileName){
 }
 
 void mv(char *fileName){
-    char source[12];
-    char dest[12];
+    char source[12]= {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+    char dest[12] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 
     char srcName[8] = {'\0','\0','\0','\0','\0','\0','\0','\0'};
     char srcExt[3] = {'\0','\0','\0'};
-    char dstName[8] = {'\0','\0','\0','\0','\0','\0','\0','\0'};
-    char destExt[3] = {'\0','\0','\0'};
 
     int index = 0;
     int buf_len = strlen(fileName);
@@ -405,11 +396,11 @@ void mv(char *fileName){
     }
 
     if (strlen(fileName)==0 || dest[0]=='\0') {
-        print("cp: missing destination file operand", BIOS_RED);
+        print("mv: missing destination file operand", BIOS_RED);
     }
     else {
-        uint32_t search_directory_number = ROOT_CLUSTER_NUMBER;
-        updateDirectoryTable(search_directory_number);
+        int curr = current_directory;
+        updateDirectoryTable(current_directory);
 
         index = 0;
         buf_len = strlen(source);
@@ -424,14 +415,16 @@ void mv(char *fileName){
             }
         }
 
+        if(!valid){
+            strcpy(srcName,source);
+            valid = true;
+        }
+
         int entry_index = findEntryName(srcName);
         if (entry_index != -1) {
             if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-                updateDirectoryTable(search_directory_number);
-            } else if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
-                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
-                updateDirectoryTable(search_directory_number);
+                current_directory =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
+                updateDirectoryTable(current_directory);
             }
         }
 
@@ -440,7 +433,7 @@ void mv(char *fileName){
             .buf = &cl,
             .name = "\0\0\0\0\0\0\0",
             .ext = "\0\0\0",
-            .parent_cluster_number = search_directory_number,
+            .parent_cluster_number = current_directory,
             .buffer_size = 4 * CLUSTER_SIZE,
         };
 
@@ -453,61 +446,54 @@ void mv(char *fileName){
             memcpy(&(reqsrc.ext), srcExt, 3);
             interrupt(0, (uint32_t) &reqsrc, (uint32_t) &retcode, 0x0);
 
-            if (retcode != 0 ) {
-                switch (retcode) {
-                    case 1:
-                        print("cp : Is a directory\n", BIOS_RED);
-                        break;
-                    case 2:
-                        print("cp : Buffer size is not enough\n", BIOS_RED);
-                        break;
-                    case 3:
-                        print("cp : No such file or directory\n", BIOS_RED);;
-                        break;
-                }
+            if (retcode == 3 ) {
+                print("mv : No such file or directory\n", BIOS_RED);
+                
             } else{
-                index = 0;
-                buf_len = strlen(dest);
-                for (int i = 0; i < buf_len; i++) {
-                    if (dest[i] == '.'){ 
-                        index = i;
-                        splitname(dest, dstName, destExt, index+1);
-                        break;
+                
+                int dest_index = findEntryName(dest);
+                if (entry_index != -1) {
+                    if (dir_table.table[dest_index].attribute == ATTR_SUBDIRECTORY) {
+                        current_directory =  (int) ((dir_table.table[dest_index].cluster_high << 16) | dir_table.table[dest_index].cluster_low);;
+                        updateDirectoryTable(current_directory);
                     }
                 }
+
                 struct ClusterBuffer cbuf = {0};
                 struct FAT32DriverRequest destReq = {
                     .buf = &cbuf,
                     .name = "\0\0\0\0\0\0\0\0",
                     .ext = "\0\0\0",
-                    .parent_cluster_number = search_directory_number,
+                    .parent_cluster_number = current_directory,
                     .buffer_size = CLUSTER_SIZE
                 };
 
-                // hapus dulu file destinasi
-                memcpy(&(destReq.name), dstName, 8);
-                memcpy(&(destReq.ext), destExt, 3);
-                interrupt(3, (uint32_t) &destReq, (uint32_t) &retcode, 0x0);
-
-                // tulis kembali dengan buffer baru
+                // tulis ke destinasi
                 strcpy(destReq.buf, reqsrc.buf);
-                memcpy(&(destReq.name), dstName, 8);
-                memcpy(&(destReq.ext), destExt, 3);
+                memcpy(&(destReq.name), reqsrc.name, 8);
+                memcpy(&(destReq.ext), reqsrc.ext, 3);
                 interrupt(2, (uint32_t) &destReq, (uint32_t) &retcode, 0x0);
 
                 if (retcode != 0) {
                     switch (retcode) {
                     case 1:
-                        print("cp: cannot copy\n", BIOS_RED);
+                        print("mv: cannot copy\n", BIOS_RED);
                         return;
                     case -1:
-                        print("cp: Unknown error occured\n", BIOS_RED);
+                        print("mv: Unknown error occured\n", BIOS_RED);
                         return;
                     }
                 }
+
+                  // ganti ke directory semula
+                current_directory = curr;
+                updateDirectoryTable(current_directory);
+
+                // hapus file awal
+                interrupt(3, (uint32_t) &reqsrc, (uint32_t) &retcode, 0x0);
             }
         } else{
-            print("cp : No such file or directory\n", BIOS_RED);
+            print("mv : No such file or directory\n", BIOS_RED);
         }
         }
 }
