@@ -14,6 +14,9 @@
     "keyboard.h": "c",
     "interrupt.h": "c",
     "command.h": "c",
-    "typeinfo": "c"
+    "typeinfo": "c",
+    "paging.h": "c",
+    "gdt.h": "c",
+    "process.h": "c"
   },
 }

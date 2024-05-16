@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "header/memory/paging.h"
+#include "header/stdlib/string.h"
+#include "header/process/process.h"
 
 __attribute__((aligned(0x1000))) struct PageDirectory _paging_kernel_page_directory = {
     .table = {
@@ -107,4 +109,86 @@ bool paging_free_user_page_frame(struct PageDirectory* page_dir, void* virtual_a
     page_manager_state.free_page_frame_count++;
 
     return true;
+}
+
+__attribute__((aligned(0x1000))) static struct PageDirectory page_directory_list[PAGING_DIRECTORY_TABLE_MAX_COUNT] = {0};
+
+static struct {
+    bool page_directory_used[PAGING_DIRECTORY_TABLE_MAX_COUNT];
+} page_directory_manager = {
+    .page_directory_used = {false},
+};
+
+struct PageDirectory* paging_create_new_page_directory(void) {
+    /*
+     * TODO: Get & initialize empty page directory from page_directory_list
+     * - Iterate page_directory_list[] & get unused page directory
+     * - Mark selected page directory as used
+     * - Create new page directory entry for kernel higher half with flag:
+     *     > present bit    true
+     *     > write bit      true
+     *     > pagesize 4 mb  true
+     *     > lower address  0
+     * - Set page_directory.table[0x300] with kernel page directory entry
+     * - Return the page directory address
+     */ 
+
+    int entry = -1;
+    for (int i = 0; i < PAGING_DIRECTORY_TABLE_MAX_COUNT; ++i) {
+        if (!page_directory_manager.page_directory_used[i]) {
+            page_directory_manager.page_directory_used[i] = true;
+            entry = i;
+            break;
+        }
+    }
+
+    if (entry == -1) {
+        return NULL; 
+    }
+
+    struct PageDirectory* new_page_dir = &page_directory_list[entry];
+    memset(new_page_dir, 0, sizeof(struct PageDirectory));
+
+    new_page_dir->table[0] = (struct PageDirectoryEntry){
+        .flag.present_bit = 1,
+        .flag.read_write = 1,
+        .flag.page_size = 1,
+        .lower_address = 0,
+    };
+
+    new_page_dir->table[0x300] = _paging_kernel_page_directory.table[0x300];
+
+    return new_page_dir;
+}
+
+bool paging_free_page_directory(struct PageDirectory *page_dir) {
+    /**
+     * TODO: Iterate & clear page directory values
+     * - Iterate page_directory_list[] & check &page_directory_list[] == page_dir
+     * - If matches, mark the page directory as unusued and clear all page directory entry
+     * - Return true
+     */
+    for (int i = 0; i < PAGING_DIRECTORY_TABLE_MAX_COUNT; ++i) {
+        if (&page_directory_list[i] == page_dir) {
+            page_directory_manager.page_directory_used[i] = false;
+            memset(&page_directory_list[i], 0, sizeof(struct PageDirectory));
+            return true;
+        }
+    }
+    return false;
+}
+
+struct PageDirectory* paging_get_current_page_directory_addr(void) {
+    uint32_t current_page_directory_phys_addr;
+    __asm__ volatile("mov %%cr3, %0" : "=r"(current_page_directory_phys_addr): /* <Empty> */);
+    uint32_t virtual_addr_page_dir = current_page_directory_phys_addr + KERNEL_VIRTUAL_ADDRESS_BASE;
+    return (struct PageDirectory*) virtual_addr_page_dir;
+}
+
+void paging_use_page_directory(struct PageDirectory *page_dir_virtual_addr) {
+    uint32_t physical_addr_page_dir = (uint32_t) page_dir_virtual_addr;
+    // Additional layer of check & mistake safety net
+    if ((uint32_t) page_dir_virtual_addr > KERNEL_VIRTUAL_ADDRESS_BASE)
+        physical_addr_page_dir -= KERNEL_VIRTUAL_ADDRESS_BASE;
+    __asm__  volatile("mov %0, %%cr3" : /* <Empty> */ : "r"(physical_addr_page_dir): "memory");
 }

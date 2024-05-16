@@ -33,3 +33,25 @@ int memcmp (const void *s1, const void *s2, size_t n) {
 
     return 0;
 }
+
+void* memset(void *s, int c, size_t n) {
+    uint8_t *buf = (uint8_t*) s;
+    for (size_t i = 0; i < n; i++)
+        buf[i] = (uint8_t) c;
+    return s;
+}
+
+
+void *memmove(void *dest, const void *src, size_t n) {
+    uint8_t *dstbuf       = (uint8_t*) dest;
+    const uint8_t *srcbuf = (const uint8_t*) src;
+    if (dstbuf < srcbuf) {
+        for (size_t i = 0; i < n; i++)
+            dstbuf[i]   = srcbuf[i];
+    } else {
+        for (size_t i = n; i != 0; i--)
+            dstbuf[i-1] = srcbuf[i-1];
+    }
+
+    return dest;
+}
