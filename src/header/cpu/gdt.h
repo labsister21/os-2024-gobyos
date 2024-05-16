@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include "interrupt.h"
 
+#define GDT_USER_CODE_SEGMENT_SELECTOR 0x18
+#define GDT_USER_DATA_SEGMENT_SELECTOR 0x20
+
 // Some GDT Constant
 #define GDT_MAX_ENTRY_COUNT 32
 /**
@@ -12,6 +15,12 @@
 */ 
 #define GDT_KERNEL_CODE_SEGMENT_SELECTOR 0x8
 #define GDT_KERNEL_DATA_SEGMENT_SELECTOR 0x10
+
+#define GDT_USER_CODE_SEGMENT_SELECTOR 0x18
+#define GDT_USER_DATA_SEGMENT_SELECTOR 0x20
+#define GDT_TSS_SELECTOR 0x28
+// Set GDT_TSS_SELECTOR with proper TSS values, accessing _interrupt_tss_entry
+void gdt_install_tss(void);
 
 extern struct GDTR _gdt_gdtr;
 
@@ -27,7 +36,7 @@ extern struct GDTR _gdt_gdtr;
  * @param non_system   1-bit contain system
  */
 struct SegmentDescriptor {
-    // First 32-bit
+     // First 32-bit
     uint16_t segment_low;
     uint16_t base_low;
 
@@ -65,10 +74,6 @@ struct GDTR {
     uint16_t                     size;
     struct GlobalDescriptorTable *address;
 } __attribute__((packed));
-
-#define GDT_USER_CODE_SEGMENT_SELECTOR 0x18
-#define GDT_USER_DATA_SEGMENT_SELECTOR 0x20
-#define GDT_TSS_SELECTOR               0x28
 
 // Set GDT_TSS_SELECTOR with proper TSS values, accessing _interrupt_tss_entry
 void gdt_install_tss(void);

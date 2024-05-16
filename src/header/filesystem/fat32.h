@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include "../driver/disk.h"
 #include "../stdlib/string.h"
 #include "../stdlib/stdmem.h"
+#include "../stdlib/stdtype.h"
 
 /**
  * FAT32 - IF2230 edition - 2024
@@ -248,5 +248,7 @@ int8_t write(struct FAT32DriverRequest request);
  * @return Error code: 0 success - 1 not found - 2 folder is not empty - -1 unknown
  */
 int8_t delete(struct FAT32DriverRequest request);
+
+uint32_t divceil(uint32_t pembilang, uint32_t penyebut);
 
 #endif

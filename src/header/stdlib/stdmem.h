@@ -5,6 +5,8 @@
 
 void* memcpy(void* restrict dest, const void* restrict src, size_t n);
 
+void* memcpy2(void* restrict dest, const void* restrict src, size_t n, size_t leb);
+
 int memcmp(const void *s1, const void *s2, size_t n);
 
 #endif

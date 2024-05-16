@@ -6,7 +6,8 @@
       "type": "lldb",
       "request": "custom",
       "targetCreateCommands": [
-        "target create '${workspaceFolder}/bin/kernel'"
+        "target create '${workspaceRoot}/bin/kernel'",
+        "target modules add '${workspaceRoot}/bin/shell_elf'"
       ],
       "processCreateCommands": [
         "gdb-remote localhost:1234",
@@ -20,8 +21,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": ".",
-      "program": "build/Debug/outDebug"
+      "cwd": "/Users/denisefeliciatiowanni/Desktop/uni/S02E02/IF2230 OS/os-2024-gobyos/src",
+      "program": "/Users/denisefeliciatiowanni/Desktop/uni/S02E02/IF2230 OS/os-2024-gobyos/src/build/Debug/outDebug"
     }
   ]
 }

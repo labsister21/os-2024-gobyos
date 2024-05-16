@@ -11,6 +11,16 @@ void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
     return buf1;
 }
 
+void* memcpy2(void* restrict dest, const void* restrict src, size_t n, size_t len) {
+    uint8_t *buf1 = (uint8_t*) dest;
+    const uint8_t *buf2 = (const uint8_t*) src;
+    for (size_t i = 0; i < len; i++){
+        buf1[i] = buf2[i+n];
+    }
+    buf1[len] = '\0';       
+    return buf1;
+}
+
 int memcmp (const void *s1, const void *s2, size_t n) {
     const uint8_t *buf1 = (const uint8_t*) s1;
     const uint8_t *buf2 = (const uint8_t*) s2;

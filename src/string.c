@@ -30,9 +30,30 @@ uint8_t strcmp(char *s1, char *s2) {
     }
 }
 
-void* memset(void *s, uint8_t c, size_t n) {
+void strcpy(char *str_dest, char *str_src){
+    int i = 0;
+    while(str_src[i]!='\0'){
+        str_dest[i] = str_src[i];
+        i++;
+    }
+    str_dest[i] = '\0';
+    return;
+}
+
+void splitfirst(const uint8_t* restrict src, void* first, int offset) {
+    const uint8_t *buf2 = (const uint8_t*) src;
+    memcpy(first,buf2,offset);  
+}
+
+void splitsecond(const uint8_t* restrict src, void* second, int offset, int len) {
+    const uint8_t *buf2 = (const uint8_t*) src;
+    size_t len2 = len-offset;
+    memcpy2(second,buf2,offset,len2);
+}
+
+void* memset(void *s, int c, size_t n) {
     uint8_t *buf = (uint8_t*) s;
     for (size_t i = 0; i < n; i++)
-        buf[i] = c;
+        buf[i] = (uint8_t) c;
     return s;
 }

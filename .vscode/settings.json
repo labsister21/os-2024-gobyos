@@ -58,6 +58,7 @@
   "C_Cpp_Runner.useLinkTimeOptimization": false,
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "files.associations": {
+    ".fantomasignore": "ignore",
     "kernel-entrypoint.h": "c",
     "gdt.h": "c",
     "portio.h": "c",
@@ -69,6 +70,7 @@
     "fat32.h": "c",
     "disk.h": "c",
     "paging.h": "c",
-    "stdmem.h": "c"
+    "stdmem.h": "c",
+    "command.h": "c"
   }
 }

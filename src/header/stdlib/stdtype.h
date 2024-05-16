@@ -1,6 +1,8 @@
 #ifndef _STDTYPE
 #define _STDTYPE
 
+
+
 /**
  * 32-bit unsigned integer
  */

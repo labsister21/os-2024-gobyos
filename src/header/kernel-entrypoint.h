@@ -1,7 +1,7 @@
 #ifndef _KERNEL_ENTRYPOINT
 #define _KERNEL_ENTRYPOINT
 
-#include "header/cpu/gdt.h"
+#include "cpu/gdt.h"
 
 /**
  * Load GDT from gdtr and complete init for protected mode. This procedure implemented in asm.
@@ -32,5 +32,7 @@ extern void kernel_execute_user_program(void *virtual_addr);
  * Set the tss register pointing to GDT_TSS_SELECTOR with ring 0
  */
 extern void set_tss_register(void);  // Implemented in kernel-entrypoint.s
+
+
 
 #endif

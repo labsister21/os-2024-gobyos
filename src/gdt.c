@@ -5,12 +5,16 @@
  * Initial SegmentDescriptor already set properly according to Intel Manual & OSDev.
  * Table entry : [{Null Descriptor}, {Kernel Code}, {Kernel Data (variable, etc)}, ...].
  */
+
+
+
 struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
         {
             // Null Descriptor
             .segment_low = 0x0000,
             .base_low = 0x0000,
+
             .base_mid = 0x00,
             .type_bit = 0x00,
             .non_system = 0x00,
@@ -27,6 +31,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
             // Kernel code segment
             .segment_low = 0xFFFF,
             .base_low = 0x0000,
+
             .base_mid = 0x00,
             .type_bit = 0xA,
             .non_system = 0x01,
@@ -43,6 +48,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
             // Kernel data segment
             .segment_low = 0xFFFF,
             .base_low = 0x0000,
+
             .base_mid = 0x00,
             .type_bit = 0x2,
             .non_system = 0x01,
@@ -59,6 +65,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
             // User code segment
             .segment_low = 0xFFFF,
             .base_low = 0x0000,
+
             .base_mid = 0x00,
             .type_bit = 0xA,
             .non_system = 0x01,
@@ -75,6 +82,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
             // User data segment
             .segment_low = 0xFFFF,
             .base_low = 0x0000,
+
             .base_mid = 0x00,
             .type_bit = 0x2,
             .non_system = 0x01,
@@ -88,31 +96,22 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .base_high = 0x00,
         },
         {
-            // Task State Segment (TSS)
-            .segment_low = sizeof(struct TSSEntry),
-            .base_low = 0,
-            .base_mid = 0,
-            .type_bit = 0x9,
-            .non_system = 0,
-            .dpl = 0,
-            .present = 1,
-            .limit_high = (sizeof(struct TSSEntry) & 0xF0000) >> 16,
-            .available = 0,
-            .reserved = 0,
-            .opsize = 1,
-            .granularity = 0,
-            .base_high = 0
+            .segment_low       = sizeof(struct TSSEntry),
+            .base_low          = 0,
+            .base_mid          = 0,
+            .type_bit          = 0x9,
+            .non_system        = 0,    
+            .dpl               = 0,   
+            .present           = 1,   
+            .limit_high        = (sizeof(struct TSSEntry) & (0xF << 16)) >> 16,
+            .reserved          = 0,    
+            .opsize            = 1,    
+            .granularity       = 0,    
+            .base_high         = 0
         },
-        {0} // Terminator
+        {0}
     }
 };
-
-void gdt_install_tss(void) {
-    uint32_t base = (uint32_t) &_interrupt_tss_entry;
-    global_descriptor_table.table[5].base_high = (base & (0xFF << 24)) >> 24;
-    global_descriptor_table.table[5].base_mid  = (base & (0xFF << 16)) >> 16;
-    global_descriptor_table.table[5].base_low  = base & 0xFFFF;
-}
 
 /**
  * _gdt_gdtr, predefined system GDTR. 
@@ -123,3 +122,10 @@ struct GDTR _gdt_gdtr = {
     .size = sizeof(global_descriptor_table.table) - 1,
     .address = &global_descriptor_table
 };
+
+void gdt_install_tss(void) {
+    uint32_t base = (uint32_t) &_interrupt_tss_entry;
+    global_descriptor_table.table[5].base_high = (base & (0xFF << 24)) >> 24;
+    global_descriptor_table.table[5].base_mid = (base & (0xFF << 16)) >> 16;
+    global_descriptor_table.table[5].base_low = base & 0xFFFF;
+}
