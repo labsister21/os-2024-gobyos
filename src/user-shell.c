@@ -22,6 +22,10 @@ void print(char *buf, uint8_t color){
     interrupt(5, (uint32_t) buf, strlen(buf), color);
 }
 
+void printn(char *buf, uint8_t color, int n){
+    interrupt(5, (uint32_t) buf, n, color);
+}
+
 void parser(char *buf, char *firstbuf, char *secondbuf){
     const uint8_t *buf2 = (const uint8_t*) buf;
     int index = 0;
@@ -73,21 +77,45 @@ int findEntryName(char* name) {
     return result;
 }
 
-
+void splashScreen() {
+    print("\n\n\n\n\n", BIOS_PINK);
+    print("                                 Welcome to\n", BIOS_PINK);
+    print("            ____    U  ___ u   ____   __   __  U  _    u ____     \n", BIOS_PINK);
+    print("         U / ___|u   \\/ _ \\/U | __ )u \\ \\ / /  \\/ _ \\/ /__   | u \n", BIOS_PINK);
+    print("         \\| |  _ /   | | | | \\|  _ \\/  \\ V /   | | | |<\\___ \\/  \n", BIOS_PINK);
+    print("          | |_| |.-,_| |_| |  | |_) | U_| |_u.-,_| |_| | u___) |   \n", BIOS_PINK);
+    print("          \\____|  \\_)-\\___/   |____/    |_| \\_)-\\___/  |____/>> \n", BIOS_PINK);
+    print("           _)(|_       \\      _|| \\_.-, //|(_       \\     )(  (__)\n", BIOS_PINK);
+    print("          (__)__)     (__)    (__) (__) \\_) (__)     (__)   (__)   \n", BIOS_PINK);
+    print("           \n", BIOS_PINK);
+    print("                          Press enter to continue!\n\n", BIOS_PINK);
+}
 
 int main(void) {
     char arg[26];
-    char cmd[5] = {'\0','\0','\0','\0','\0'};
+    char args_val[2048];
+    char cmd[6] = {'\0','\0','\0','\0','\0','\0'};
     char args[15] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+    char path_str[26];
+    
+    splashScreen();
+    interrupt (4, (uint32_t) args_val, 2048, 0x0);
+    interrupt(7, 0, 0, 0);
 
     while (true) {
-
+        clear(path_str, 26);
         clear(args, 15);
         clear(arg, 26);
-        clear(cmd, 5);
+        clear(cmd, 6);
 
         print("\nGobyOS-IF2230", BIOS_LIGHT_GREEN);
         print(":", BIOS_GREY);
+        print ("/", BIOS_LIGHT_BLUE);
+        if (memcmp(dir_table.table->name, "root",4)!=0 || strcmp(dir_table.table->name, "")!=0 ){
+            print(dir_table.table->name, BIOS_LIGHT_BLUE);
+            print(" ", BIOS_GREY);
+        }
+
         interrupt (4, (uint32_t) arg, 26, 0x0);
         const uint8_t *buf2 = (const uint8_t*) arg;
         int index = 0;
@@ -117,16 +145,19 @@ int main(void) {
 
 
         if (strcmp(cmd, "cd")==0){
-
+            splitsecond(buf2, args, index+1,len);
+            cd(args);
         } 
         else if (strcmp(cmd, "mkdir")==0){
-
+            splitsecond(buf2, args, index+1,len);
+            mkdir(args);
         }
         else if (strcmp(cmd, "ls")==0){
-
+            ls();
         }
         else if (strcmp(cmd, "cp")==0){
-            splitsecond(buf2, args, index+1,len);
+            size_t len2 = len-index+1;
+            memcpy2(args,buf2,index+1,len2);
             cp(args);
         }
         else if (strcmp(cmd, "cat")==0){
@@ -137,10 +168,8 @@ int main(void) {
 
         }
         else if (strcmp(cmd, "rm")==0){
+            splitsecond(buf2, args, index+1,len);
             rm(args);
-        }
-        else if (strcmp(cmd, "cp")==0){
-
         }
         else if (strcmp(cmd, "find")==0){
 

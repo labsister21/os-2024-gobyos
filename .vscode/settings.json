@@ -12,6 +12,8 @@
     "disk.h": "c",
     "user-shell.h": "c",
     "keyboard.h": "c",
-    "interrupt.h": "c"
+    "interrupt.h": "c",
+    "command.h": "c",
+    "typeinfo": "c"
   },
 }

@@ -330,8 +330,8 @@ int8_t write(struct FAT32DriverRequest request){
             .cluster_low = start,
             .filesize = request.buffer_size
         };
-        driverState.dir_table_buf.table[entryRow] = dirEntry;
-        write_clusters(driverState.dir_table_buf.table, request.parent_cluster_number, 1);
+        table[entryRow] = dirEntry;
+        write_clusters(table, request.parent_cluster_number, 1);
 
         // tulis file ke cluster
         int i = 0;
@@ -366,61 +366,94 @@ int8_t delete(struct FAT32DriverRequest request){
 
     struct FAT32DirectoryEntry *table = driverState.dir_table_buf.table;
 
-    // for loop semua entri dalam direktori
-    for (uint8_t i = 1; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++){
-            if(table[i].user_attribute == UATTR_NOT_EMPTY){ // entri keisi
+    int entryRow = 0;
+    bool found = false;
+    bool isDirectory = false;
+    uint32_t clusterNumber;
 
-                // hitung jumlah cluster yang diperlukan untuk menyimpan data file
-                uint16_t cnt = divceil(table[i].filesize, CLUSTER_SIZE);
-                uint16_t loc[cnt]; // simpan lokasi entri
-                uint16_t currcluster = table[i].cluster_low;
-
-                if(table[i].attribute==0 && strcmp(table[i].ext, request.ext)){ // hapus file
-                    // file dikosongin
-                    table[i].user_attribute = !(UATTR_NOT_EMPTY);
-                    table[i].undelete = true;
-                    write_clusters(&driverState.dir_table_buf, request.parent_cluster_number, 1);
-
-                    // hapus semua cluster yang digunakan oleh file
-                    for (uint16_t i = 0; i < cnt; i++){
-                        loc[i] = currcluster;
-                        currcluster = driverState.fat_table.cluster_map[currcluster];
-                    }
-
-                    for (uint16_t i = 0; i < cnt; i++){
-                        driverState.fat_table.cluster_map[loc[i]] = 0;
-                    }
-
-                    // tulis ulang tabel FAT setelah menghapus file
-                    write_clusters(&driverState.fat_table, 1, 1);
-                    return 0; // success
-                }
+    // cek apakah sebuah directory atau file
+    for (int i =2; i <= 64; i++) {
+        if (memcmp(table[i-1].name, request.name, 8) == 0 && memcmp(table[i-1].ext, request.ext, 3) == 0 && table[i-1].user_attribute == UATTR_NOT_EMPTY) {
+            found = true;
+            entryRow = i-1;
+            clusterNumber = ((uint32_t) table[i-1].cluster_high) << 16;
+            clusterNumber |= (uint32_t) table[i-1].cluster_low;
+            if (table[i-1].attribute == ATTR_SUBDIRECTORY) {
+                isDirectory = true;
             }
-            else{
-                if (table[i].attribute) { // hapus folder
-                    struct FAT32DirectoryTable directory;
-
-                    // baca cluster yang berisi direktori yang akan dihapus
-                    read_clusters(&directory, table[i].cluster_low, 1);
-                    // periksa apakah direktori kosong atau tidak
-                    for (uint16_t i = 1; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++){
-                        if (directory.table[i].user_attribute == UATTR_NOT_EMPTY){
-                            return 2; // direktori tidak kosong dan tidak dapat dihapus
-                        }
-                    }
-
-                    // hapus semua cluster yang digunakan oleh direktori
-                    driverState.fat_table.cluster_map[table[i].cluster_low] = 0;
-                    table[i].user_attribute = !UATTR_NOT_EMPTY;
-                    table[i].undelete = true;
-
-                    // tulis ulang entri direktori dan tabel FAT setelah menghapus direktori
-                    write_clusters(&driverState.dir_table_buf, request.parent_cluster_number, 1);
-                    write_clusters(&driverState.fat_table, 1, 1);
-                    return 0; // success
-                }
-            }
+            break;
+        }
     }
 
-    return 1; // not found 
+    // jika file / folder tidak ditemukan
+    if (!found) { return 1; }
+
+    if (!isDirectory) {
+        // entri adalah file
+        for (int i = 0; i < 8; i++) {
+            table[entryRow].name[i] = 0;
+            if (i < 3) {
+                table[entryRow].ext[i] = 0;
+            } 
+        }
+        table[entryRow].user_attribute = FAT32_FAT_EMPTY_ENTRY;
+        table[entryRow].attribute = FAT32_FAT_EMPTY_ENTRY;
+        write_clusters(table, request.parent_cluster_number, 1);
+
+        // delete semua file dan cluster dari FAT table
+        uint32_t currClusterNumber = clusterNumber;
+        uint32_t prevClusterNumber = 0;
+        while (driverState.fat_table.cluster_map[currClusterNumber] != FAT32_FAT_END_OF_FILE) {
+            prevClusterNumber = currClusterNumber;
+            currClusterNumber = driverState.fat_table.cluster_map[currClusterNumber];
+            driverState.fat_table.cluster_map[prevClusterNumber] = FAT32_FAT_EMPTY_ENTRY;
+        }
+        driverState.fat_table.cluster_map[currClusterNumber] = 0;
+        write_clusters(driverState.fat_table.cluster_map, FAT_CLUSTER_NUMBER, 1);
+    }
+    else {
+        // entry berupa directory
+        struct FAT32DirectoryTable tempDir;
+        read_clusters(tempDir.table, clusterNumber, 1);
+
+        // check if the directory is empty
+        bool empty = true;
+
+        for (int i=2; i <= 64; i++) {
+            if (tempDir.table[i-1].user_attribute == UATTR_NOT_EMPTY) {
+                empty = false;
+            }
+        }
+
+        // directory sudah kosong
+        if (!empty) { return 2;}
+
+        // hapus file
+        for (int i = 0; i < 8; i++) {
+            table[entryRow].name[i] = 0;
+            if (i < 3) {
+                table[entryRow].ext[i] = 0;
+            } 
+        }
+        table[entryRow].user_attribute = FAT32_FAT_EMPTY_ENTRY;
+        table[entryRow].attribute = FAT32_FAT_EMPTY_ENTRY;
+        write_clusters(table, request.parent_cluster_number, 1);
+
+        // hapus directory
+        for (int i = 0; i < 8; i++) {
+            tempDir.table[0].name[i] = 0;
+            if (i < 3) {
+                tempDir.table[0].ext[i] = 0;
+            } 
+        }
+        tempDir.table[0].user_attribute = FAT32_FAT_EMPTY_ENTRY;
+        tempDir.table[0].attribute = FAT32_FAT_EMPTY_ENTRY;
+        write_clusters(tempDir.table, clusterNumber, 1);
+
+        // hapus direktori di fat
+        driverState.fat_table.cluster_map[clusterNumber] = FAT32_FAT_EMPTY_ENTRY;
+        write_clusters(driverState.fat_table.cluster_map, FAT_CLUSTER_NUMBER, 1);
+    }
+
+    return 0;
 }

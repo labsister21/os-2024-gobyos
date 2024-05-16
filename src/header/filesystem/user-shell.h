@@ -18,6 +18,7 @@
 #define BIOS_BROWN       0b0110
 #define BIOS_WHITE       0b1111
 #define BIOS_BLACK       0b0000
+#define BIOS_PINK        0b1101
 
 // Position of current directory
 extern uint32_t current_directory;
@@ -28,9 +29,12 @@ void interrupt (uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
 
 // Put chars to screen
 void print (char* buf, uint8_t color);
+void printn (char* buf, uint8_t color, int n);
 
 void updateDirectoryTable(uint32_t cluster_number);
 
 int findEntryName(char* name);
+
+void splashScreen();
 
 #endif
