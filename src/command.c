@@ -352,7 +352,7 @@ void cd(char *fileName){
     if (strlen(fileName)==0 ) {
         print("cd: missing destination file operand", BIOS_RED);
     } else{
-        int search_directory_number = current_directory;
+        int search_directory_number = ROOT_CLUSTER_NUMBER;
         updateDirectoryTable(current_directory);
 
         if (memcmp(fileName, "..", 2) == 0) {
@@ -497,3 +497,133 @@ void mv(char *fileName){
         }
         }
 }
+
+
+void find(char *fileName) {
+    if (strlen(fileName) == 0) {
+        print("find: missing destination file operand", BIOS_RED);
+        return;
+    }
+    uint32_t search_directory_number = ROOT_CLUSTER_NUMBER;
+    char srcName[8] = {'\0','\0','\0','\0','\0','\0','\0','\0'};
+    char srcExt[3] = {'\0','\0','\0'};
+    bool visited[63];       
+    clear(visited, 63);
+    
+    updateDirectoryTable(search_directory_number);
+
+    for(int i = 0; i < 63; i++){
+
+        int index = 0;
+        int buf_len = strlen(fileName);
+        for (int i = 0; i < buf_len; i++) {
+            if (fileName[i] == '.'){ 
+                index = i;
+                splitname(fileName, srcName, srcExt, index+1);
+                break;
+            }
+        }
+
+        int entry_index = findEntryName(srcName);
+        if (entry_index == -1) {
+            print("find: No such file or directory\n", BIOS_RED);
+            return;
+        }
+        else{
+            if (dir_table.table[entry_index].attribute == ATTR_SUBDIRECTORY) {
+                search_directory_number =  (int) ((dir_table.table[entry_index].cluster_high << 16) | dir_table.table[entry_index].cluster_low);;
+                updateDirectoryTable(search_directory_number);
+            }
+        }
+        struct ClusterBuffer cl           = {0};
+        struct FAT32DriverRequest request = {
+            .buf = &cl,
+            .name = "\0\0\0\0\0\0\0",
+            .ext = "\0\0\0",
+
+            .parent_cluster_number = search_directory_number,
+            .buffer_size = 4 * CLUSTER_SIZE,
+        };
+        
+        memcpy(&(request.name), srcName, 8);
+        memcpy(&(request.ext), srcExt, 3);
+        
+   
+        // Traverse through all entries in the updated directory table
+        //  tiap tingkatan direktori ini akn di traversal semua
+            // print direktori tabelnya
+        if (dir_table.table[i].user_attribute == UATTR_NOT_EMPTY) {
+            // print(dir_table.table[i].name, BIOS_BROWN);
+            // if (dir_table.table[i].attribute != ATTR_SUBDIRECTORY && strlen(dir_table.table[i].ext) != 0){
+            //     print(".", BIOS_BROWN);
+            //     updateDirectoryTable(current_directory);
+            //     print(dir_table.table[i].ext, BIOS_BROWN);
+            // }
+            if(!visited[i-1]){
+                search_directory_number = (int)  ((dir_table.table[i].cluster_high << 16) | dir_table.table[i].cluster_low);
+                updateDirectoryTable(search_directory_number);
+                processDFS(srcName, search_directory_number, i, visited);  
+
+                visited[i-1]= true;
+            }
+        }
+    }
+}
+
+
+void processDFS (char srcName[8], uint32_t search_directory_number, int v, bool visited[63]) {
+    char path_list[2048];
+    clear(path_list, 2048);
+    // Kunjungi dulu simpulnya
+    visited[v - 1] = true;
+
+    // define bool visied yang baru
+    bool visitedNew [63];
+    clear(visitedNew, 63);
+
+    // Melakukan traversal terhadap dir table sekarang ke tetangganya
+    for (int i = 1; i < 64; i++) {
+        // Memastikan ada isinya, tidak kosong
+        if (dir_table.table[i].user_attribute == UATTR_NOT_EMPTY) {
+            // Kalau folder, salin trus traverse dalamnya
+            if (dir_table.table[i].attribute == ATTR_SUBDIRECTORY) {
+                // Cek apakah namanya sama, kalo sama cetak
+                if (memcmp(dir_table.table[i].name, srcName, 8) == 0) {
+                    // printCWD(path_list, current_directory);
+                    updateDirectoryTable(search_directory_number);
+                    print("/", BIOS_LIGHT_BLUE);
+                    print(srcName, BIOS_LIGHT_BLUE);
+                    print("  ", BIOS_BLACK);
+                    print("\n", BIOS_BLACK);
+                }
+                // Sama maupun tidak, proses pencarian tetap dilakukan
+                if (!visitedNew[i - 1]) {
+                    search_directory_number = (int) ((dir_table.table[i].cluster_high << 16) | dir_table.table[i].cluster_low);
+                    updateDirectoryTable(search_directory_number);
+                    processDFS (srcName, search_directory_number, i, visitedNew);
+
+                    // NAIK
+                    visitedNew[i - 1] = true;
+                    search_directory_number = (int) ((dir_table.table[0].cluster_high << 16) | dir_table.table[0].cluster_low);
+                    updateDirectoryTable(search_directory_number);
+                }
+            }
+            else {
+                // Cek apakah namanya sama, kalo sama cetak
+                if (memcmp(dir_table.table[i].name, srcName, 8) == 0) {
+                    updateDirectoryTable(search_directory_number);
+                    print("/", BIOS_LIGHT_BLUE);
+                    print(srcName, BIOS_LIGHT_BLUE);
+                    print(".", BIOS_LIGHT_BLUE);
+                    print(dir_table.table[i].ext, BIOS_LIGHT_BLUE);
+                    print("  ", BIOS_BLACK);
+                    print("\n", BIOS_BLACK);
+                }
+                visited[i - 1] = true;
+        
+            }
+        }
+    }
+}
+
+
