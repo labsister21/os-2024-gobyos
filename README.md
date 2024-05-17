@@ -10,6 +10,8 @@
     <img src="img/description.gif" alt="readme2" width="600"/>
 </div>
 
+<br>
+
 Hai. Repository ini merupakan hasil Tugas Besar IF2230 Sistem Operasi kami, yaitu membuat sebuah OS (sistem operasi). Sistem operasi ini dibuah khsuusnya untuk platform x86 32-bit protected mode yang dijalankan dengan QEMU.
 
 Projek ini memiliki beberapa milestone, diantaranya:
@@ -18,9 +20,12 @@ Projek ini memiliki beberapa milestone, diantaranya:
 3. <b> MILESTONE 2 </b> - Paging (mengelola alokasi memori), User Mode (mendukung operasi mode pengguna), Shell (menyediakan antarmuka pengguna untuk interaksi sistem dan eksekusi perintah)
 4. <b> MILESTONE 3 </b> - Process, Scheduler (mengelola eksekusi proses seperti mengalokasikan waktu CPU di antara beberapa proses), Multitasking (memungkinkan beberapa proses berjalan secara bersamaan)
 
+<br>
+
 <div align="center">
     <img src="img/structure.gif" alt="readme2" width="600"/>
 </div>
+<br>
 
 Berikut adalah struktur projek kami.
 ```
@@ -64,9 +69,11 @@ Berikut adalah struktur projek kami.
 ├── makefile
 └── README.md
 ```
+<br>
 <div align="center">
     <img src="img/howtorun.gif" alt="readme2" width="600"/>
 </div>
+<br>
 
 1. Clone repository ini dengan 
     ```
@@ -86,7 +93,9 @@ Berikut adalah struktur projek kami.
     make
     ```
 
+<br>
 <div align="center">
     <img src="img/contributors.gif" alt="readme2" width="600"/>
+    <br>
     <img src="img/name.gif" alt="readme2" width="600"/>
 </div>
