@@ -36,8 +36,14 @@ void kernel_setup(void) {
     };
 
     read(request);
-    struct ClusterBuffer cbuf[2];
+   // Set TSS.esp0 for interprivilege interrupt
+    set_tss_kernel_current_stack();
 
+    // Create & execute process 0
+    process_create_user_process(request);
+    paging_use_page_directory(_process_list[0].context.page_directory_virtual_addr);
+
+    struct ClusterBuffer cbuf[2];
     memcpy(cbuf, "OS matahariku\nOS cintaku\ni love u OS\n", 132);
     request.buf = cbuf;
     clear(&request.name, 8);
@@ -52,14 +58,7 @@ void kernel_setup(void) {
     memcpy(&request.name, "lain", 4);
     write(request);
 
-   // Set TSS.esp0 for interprivilege interrupt
-    set_tss_kernel_current_stack();
-
-    // Create & execute process 0
-    process_create_user_process(request);
-    // paging_use_page_directory(_process_list[0].context.page_directory_virtual_addr);
     kernel_execute_user_program((void*) 0x0);
-
 
     while (true);
 }
