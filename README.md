@@ -97,5 +97,5 @@ Berikut adalah struktur projek kami.
 <div align="center">
     <img src="img/contributors.gif" alt="readme2" width="600"/>
     <br>
-    <img src="img/contributors.png" alt="readme2" width="600"/>
+    <img src="img/name.gif" alt="readme2" width="600"/>
 </div>
