@@ -225,6 +225,7 @@ void put_char(char c, uint32_t color) {
 
 void puts_char(char *buf, uint32_t count, uint32_t color) {
     for (uint8_t i = 0; i < count; i++) {
+        framebuffer_set_cursor(cursor_row, cursor_col + i + 1);
         if (buf[i] == '\n') {
             cursor_row++;
             cursor_col = 0;

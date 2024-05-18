@@ -110,7 +110,7 @@ int main(void) {
         clear(arg, 26);
         clear(cmd, 6);
 
-        print("\nGobyOS-IF2230", BIOS_LIGHT_GREEN);
+        print("GobyOS-IF2230", BIOS_LIGHT_GREEN);
         print(":", BIOS_GREY);
         print ("/", BIOS_LIGHT_BLUE);
         if (memcmp(dir_table.table->name, "root",4)!=0 || strcmp(dir_table.table->name, "")!=0 ){
@@ -175,7 +175,10 @@ int main(void) {
             rm(args);
         }
         else if (strcmp(cmd, "find")==0){
-
+            int curr2 = current_directory;
+            splitsecond(buf2, args, index+1,len);
+            find(args);
+            updateDirectoryTable(curr2);
         } else{
             print("Invalid command!\n", BIOS_RED);
         }
