@@ -92,30 +92,33 @@ void splashScreen() {
     print("           \n", BIOS_PINK);
     print("                          Press enter to continue!\n\n", BIOS_PINK);
 }
-// void get_time(uint16_t* year, uint16_t* month, uint16_t* day, uint16_t* hour, uint16_t* minute, uint16_t* second) {
-//     uint16_t timestamp[6];
-//     interrupt(SYS_READ_RTC_TIME, (uint32_t) timestamp, 0, 0);
-//     *year = timestamp[0];
-//     *month = timestamp[1];
-//     *day = timestamp[2];
-//     *hour = timestamp[3];
-//     *minute = timestamp[4];
-//     *second = timestamp[5];
-// }
-// void clock_task() {
-//     uint16_t year, month, day, hour, minute, second;
-//     while (true) {
-//         get_time(&year, &month, &day, &hour, &minute, &second);
-//         // Clear the previous clock display
 
-//         interrupt(11, 0, 0, 0);
-//     }
-// }
+void mickeOS(){
+    print("                         MickeOS\n", BIOS_PINK);
+    print("                        _____   \n", BIOS_PINK);
+    print("                    .d88888888bo.    \n", BIOS_PINK);  
+    print("                  .d8888888888888b.    \n", BIOS_PINK);
+    print("                  8888888888888888b \n", BIOS_PINK);
+    print("                 888888888888888888 \n", BIOS_PINK);
+    print("                888888888888888888 \n", BIOS_PINK); 
+    print("               Y8888888888888888 \n", BIOS_PINK);
+    print("           ,od888888888888888888P \n", BIOS_PINK);
+    print("         .'`Y8P'```'Y88888888888P'      \n", BIOS_PINK);
+    print("       .'_   `  _     'Y888888888b      \n", BIOS_PINK);
+    print("      /  _`    _ `      Y888888888b    ____\n", BIOS_PINK);
+    print("   _  | /  \\  /  \\      8888888888.d888888b.\n", BIOS_PINK);
+    print("  d8b | | /|  | /|      8888888888d8888888888b\n", BIOS_PINK);
+    print(" 8888_\\ \\_|/  \\_|/      d888888888888888888888b\n", BIOS_PINK);
+    print(" .Y8P  `'-.            d88888888888888888888888\n", BIOS_PINK);
+    print("/          `          `      `Y8888888888888888\n", BIOS_PINK);
+    print("|                        __    888888888888888P\n", BIOS_PINK);
+    print(" \\                       / `   dPY8888888888P'\n", BIOS_PINK);
+    print("  '._                  .'     .'  `Y888888P`\n", BIOS_PINK);
+    print("     `\"'-.,__    ___.-'    .-'\n", BIOS_PINK);
+    print("    jgs  `-._````  __..--'`\n", BIOS_PINK);
+    print("             ``````\n", BIOS_PINK);
+}
 
-
-// void start_clock_task() {
-//     interrupt(11, (uint32_t) clock_task, 0, 0);
-// }
 
 void showHelp() {
     print("Available commands:\n", BIOS_WHITE);
@@ -131,6 +134,8 @@ void showHelp() {
     print("time                show current time\n", BIOS_WHITE);
     print("find name           find file/folder with given name\n", BIOS_WHITE);
     print("exec name           open .exe file\n", BIOS_WHITE);
+    print("ps                  show all running process\n", BIOS_WHITE);
+    print("micke               show mickeyOS \n", BIOS_WHITE);
 }
 
 int main(void) {
@@ -193,38 +198,70 @@ int main(void) {
 
 
         if (strcmp(cmd, "cd")==0){
-            splitsecond(buf2, args, index+1,len);
-            cd(args);
+            if(strlen(args)==0){
+                print("no such file or directory\n", BIOS_RED);
+            }else{
+                splitsecond(buf2, args, index+1,len);
+                cd(args);
+            }
         } 
         else if (strcmp(cmd, "mkdir")==0){
-            splitsecond(buf2, args, index+1,len);
-            mkdir(args);
+            if(strlen(args)==0){
+                print("no such file or directory\n", BIOS_RED);
+            }else{
+                splitsecond(buf2, args, index+1,len);
+                mkdir(args);
+            }
         }
         else if (strcmp(cmd, "ls")==0){
-            ls();
+            if(strlen(args)==0){
+                print("no such file or directory\n", BIOS_RED);
+            }else {
+                ls();
+            }
         }
         else if (strcmp(cmd, "cp")==0){
-            size_t len2 = len-index+1;
-            memcpy2(args,buf2,index+1,len2);
-            cp(args);
+            if(strlen(args)==0){
+                print("no such file or directory\n", BIOS_RED);
+            }else {
+                size_t len2 = len-index+1;
+                memcpy2(args,buf2,index+1,len2);
+                cp(args);
+            }
         }
         else if (strcmp(cmd, "cat")==0){
-            splitsecond(buf2, args, index+1,len);
-            cat(args);
+            if(strlen(args)==0){
+                print("no such file or directory\n", BIOS_RED);
+            }else {
+                splitsecond(buf2, args, index+1,len);
+                cat(args);
+            }
         }
         else if (strcmp(cmd, "mv")==0){
-            splitsecond(buf2, args, index+1,len);
-            mv(args);
+            if(strlen(args)==0){
+                print("no such file or directory\n", BIOS_RED);
+            }else {
+                splitsecond(buf2, args, index+1,len);
+                mv(args);
+            }
         }
         else if (strcmp(cmd, "rm")==0){
-            splitsecond(buf2, args, index+1,len);
-            rm(args);
+            if(strlen(args)==0){
+                print("no such file or directory\n", BIOS_RED);
+            }else {
+                splitsecond(buf2, args, index+1,len);
+                rm(args);
+            }
         }
         else if (strcmp(cmd, "find")==0){
-            int curr2 = current_directory;
-            splitsecond(buf2, args, index+1,len);
-            find(args);
-            updateDirectoryTable(curr2);
+            if(strlen(args)==0){
+                print("no such file or directory\n", BIOS_RED);
+            }else {
+                int curr2 = current_directory;
+                splitsecond(buf2, args, index+1,len);
+                find(args);
+                updateDirectoryTable(curr2);
+            }
         } 
         else if (strcmp(cmd, "clear")==0 || strcmp(arg, "clear")==0){
            interrupt(7, 0, 0, 0);
@@ -242,6 +279,8 @@ int main(void) {
         } else if (strcmp(cmd, "clock")==0 || strcmp(arg, "clock")==0)
         {
             clock();
+        }else if(strcmp(cmd, "micke")==0){
+            mickeOS();
         }
         else{
             print("Invalid command!\n", BIOS_RED);
