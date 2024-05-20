@@ -117,6 +117,22 @@ void splashScreen() {
 //     interrupt(11, (uint32_t) clock_task, 0, 0);
 // }
 
+void showHelp() {
+    print("Available commands:\n", BIOS_WHITE);
+    print("cat filename        show content of file\n", BIOS_WHITE);
+    print("cd target           move current directory to target. support relative path\n", BIOS_WHITE);
+    print("clear               clear current screen\n", BIOS_WHITE);
+    print("cp [-r] source dest copy file/folder to destination\n", BIOS_WHITE);
+    print("ls [foldername]     show current or target directory contents\n", BIOS_WHITE);
+    print("mkdir dirname       create new directory\n", BIOS_WHITE);
+    print("mv source dest      move file/folder to destination\n", BIOS_WHITE);
+    print("rm [-r] target      delete folder/file\n", BIOS_WHITE);
+    print("kill                kill current process\n", BIOS_WHITE);
+    print("time                show current time\n", BIOS_WHITE);
+    print("find name           find file/folder with given name\n", BIOS_WHITE);
+    print("exec name           open .exe file\n", BIOS_WHITE);
+}
+
 int main(void) {
     char arg[26];
     char args_val[2048];
@@ -229,11 +245,9 @@ int main(void) {
         }
         else{
             print("Invalid command!\n", BIOS_RED);
+            showHelp();
         }
     }
 
     return 0;
 }
-    
-
-        
