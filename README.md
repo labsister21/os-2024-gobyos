@@ -36,14 +36,21 @@ Berikut adalah struktur projek kami.
 ├── src
 │   ├── build
 │   ├── header
+│   │   ├── clock
+│   │   ├── cmos
 │   │   ├── cpu
 │   │   ├── driver
 │   │   ├── filesystem
 │   │   ├── memory
+│   │   ├── process
+│   │   ├── scheduler
 │   │   ├── stdlib
 │   │   ├── text
+│   │   ├── user
 │   │   ├── idt.h
 │   │   ├── kernel-entrypoint.h
+│   ├── clock.c
+│   ├── cmos.c
 │   ├── command.c
 │   ├── crt0.s
 │   ├── disk.c
@@ -61,6 +68,8 @@ Berikut adalah struktur projek kami.
 │   ├── menu.lst
 │   ├── paging.c
 │   ├── portio.c
+│   ├── process.c
+│   ├── scheduler.c
 │   ├── stdmem.c
 │   ├── string.c
 │   ├── user-linker.ld
