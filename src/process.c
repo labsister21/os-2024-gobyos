@@ -2,12 +2,16 @@
 #include "header/memory/paging.h"
 #include "header/stdlib/string.h"
 #include "header/cpu/gdt.h"
+#include "header/text/framebuffer.h"
+#include "header/scheduler/scheduler.h"
 
 ProcessManagerState process_manager_state = {0, -1, 0};
 ProcessControlBlock _process_list[PROCESS_COUNT_MAX]; // Static array of PCBs
 
 int32_t process_create_user_process(struct FAT32DriverRequest request){
     int32_t retcode = PROCESS_CREATE_SUCCESS;
+    int8_t return_c = read(request);
+    
     if (process_manager_state.active_process_count >= PROCESS_COUNT_MAX)
     {
         retcode = PROCESS_CREATE_FAIL_MAX_PROCESS_EXCEEDED;
@@ -42,9 +46,7 @@ int32_t process_create_user_process(struct FAT32DriverRequest request){
     struct PageDirectory* currentPD = paging_get_current_page_directory_addr();
     paging_allocate_user_page_frame(new_pcb->context.page_directory_virtual_addr, request.buf);
     paging_use_page_directory(new_pcb->context.page_directory_virtual_addr);
-
-    int8_t return_c = read(request);
-
+    
     if (return_c != 0)
     {
         paging_use_page_directory(currentPD);
@@ -70,7 +72,11 @@ int32_t process_create_user_process(struct FAT32DriverRequest request){
     new_pcb->req = request; 
 
     process_manager_state.active_process_count++;
+    process_manager_state.current_running_process_index = new_pcb->metadata.pid-1;
 
+    scheduler_init();
+    scheduler_switch_to_next_process();
+    
 exit_cleanup:
     return retcode;
 }

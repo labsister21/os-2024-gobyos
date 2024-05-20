@@ -143,6 +143,8 @@ void set_tss_kernel_current_stack(void);
 // Activate PIC mask for keyboard only
 void activate_keyboard_interrupt(void);
 
+void activate_timer_interrupt(void);
+
 // I/O port wait, around 1-4 microsecond, for I/O synchronization purpose
 void io_wait(void);
 

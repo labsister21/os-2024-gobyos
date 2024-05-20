@@ -187,7 +187,12 @@ int main(void) {
             index = 5;
             splitfirst(buf2, cmd, index+1);
             found=true;
-        }
+            }
+            if (strlen(arg) == 4 &&!found) {
+            index = 4;
+            splitfirst(buf2, cmd, index+1);
+            found=true;
+            }
 
         }
 
@@ -214,11 +219,7 @@ int main(void) {
             }
         }
         else if (strcmp(cmd, "ls")==0){
-            if(strlen(args)==0){
-                print("no such file or directory\n", BIOS_RED);
-            }else {
-                ls();
-            }
+            ls();
         }
         else if (strcmp(cmd, "cp")==0){
             if(strlen(args)==0){
@@ -276,10 +277,7 @@ int main(void) {
         else if (strcmp(cmd, "kill")==0){
             splitsecond(buf2, args, index+1,len);
             kill(args);
-        } else if (strcmp(cmd, "clock")==0 || strcmp(arg, "clock")==0)
-        {
-            clock();
-        }else if(strcmp(cmd, "micke")==0){
+        } else if(strcmp(cmd, "micke")==0){
             mickeOS();
         }
         else{

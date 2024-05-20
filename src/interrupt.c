@@ -7,6 +7,7 @@
 #include "header/scheduler/scheduler.h"
 #include "header/cmos/cmos.h"
 #include "header/clock/clock.h"
+#include "header/stdlib/stdmem.h"
 
 #define PIT_MAX_FREQUENCY   1193182
 #define PIT_TIMER_FREQUENCY 1000
@@ -133,9 +134,19 @@ void syscall(struct InterruptFrame frame) {
         uint32_t pid = *((uint32_t*) frame.cpu.general.ebx);
         process_destroy(pid);
     } else if (frame.cpu.general.eax == 9) {
+
+        struct FAT32DriverRequest request2 = {
+            .buf                   = (uint8_t*) 0,
+            .name                  = "",
+            .ext                   = "\0\0\0",
+            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .buffer_size           = 0x100000,
+        };
         struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) frame.cpu.general.ebx;
-        int32_t result = process_create_user_process(request);
+        strcpy(request2.name,request.buf);
+        int32_t result = process_create_user_process(request2);
         *((int8_t*) frame.cpu.general.ecx) = result;
+
     } else if (frame.cpu.general.eax == 10) {
         // untuk mendapat informasi proses
         char ps[200];
