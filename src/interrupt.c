@@ -4,6 +4,9 @@
 #include "header/text/framebuffer.h"
 #include "header/filesystem/fat32.h"
 #include "header/process/process.h"
+#include "header/scheduler/scheduler.h"
+#include "header/cmos/cmos.h"
+#include "header/clock/clock.h"
 
 #define PIT_MAX_FREQUENCY   1193182
 #define PIT_TIMER_FREQUENCY 1000
@@ -15,7 +18,7 @@
 #define PIT_COMMAND_VALUE_ACC_LOHIBYTE    (0b11  << 4)
 #define PIT_COMMAND_VALUE_CHANNEL         (0b00  << 6) 
 #define PIT_COMMAND_VALUE (PIT_COMMAND_VALUE_BINARY_MODE | PIT_COMMAND_VALUE_OPR_SQUARE_WAVE | PIT_COMMAND_VALUE_ACC_LOHIBYTE | PIT_COMMAND_VALUE_CHANNEL)
-
+#define SYS_READ_RTC_TIME 0x30
 #define PIT_CHANNEL_0_DATA_PIO 0x40
 
 void activate_timer_interrupt(void) {
@@ -139,7 +142,11 @@ void syscall(struct InterruptFrame frame) {
         clear(ps,200);
         get_process_metadata(ps);
         strcpy((char*) frame.cpu.general.ebx, ps);
-    } 
+    } else if (frame.cpu.general.eax == 11) {
+        // memanggil clock
+
+        *((bool *)frame.cpu.general.ebx) = get_timestamp();
+    }
 }
 
 struct TSSEntry _interrupt_tss_entry = {

@@ -1,6 +1,8 @@
 #include "header/filesystem/command.h"
 #include "header/filesystem/user-shell.h"
 #include "header/stdlib/stdtype.h"
+#include "header/stdlib/string.h"
+#include "header/cmos/cmos.h"
 
 void cat(char *fileName){
     if (strlen(fileName)==0 ) {
@@ -653,4 +655,43 @@ void ps(){
     int32_t retcode;
     interrupt(10, (uint32_t) &buf, (uint32_t) &retcode, 0x0);
     print(buf,BIOS_BROWN);
+}
+
+
+void clock()
+{
+  uint16_t year;
+  uint16_t month;
+  uint16_t day;
+  uint16_t hour;
+  uint16_t minute;
+  uint16_t second;
+  read_rtc(&year, &month, &day, &hour, &minute, &second);
+
+  char syear[10];
+  char smonth[10];
+  char sday[10];
+  char shour[10];
+  char sminute[10];
+  char ssecond[10];
+  itoa((int32_t)year, syear);
+  itoa((int32_t)month, smonth);
+  itoa((int32_t)day, sday);
+  itoa((int32_t)hour, shour);
+  itoa((int32_t)minute, sminute);
+  itoa((int32_t)second, ssecond);
+
+  print(syear, BIOS_WHITE);
+  print("-",BIOS_WHITE);
+  print(smonth, BIOS_WHITE);
+  print("-", BIOS_WHITE);
+  print(sday, BIOS_WHITE);
+  print(" ", BIOS_WHITE);
+  print(shour, BIOS_WHITE);
+  print(":", BIOS_WHITE);
+  print(sminute, BIOS_WHITE);
+  print(":", BIOS_WHITE);
+  print(ssecond, BIOS_WHITE);
+
+  print(" UTC\n", BIOS_WHITE);
 }

@@ -6,8 +6,7 @@
 ProcessManagerState process_manager_state = {0, -1, 0};
 ProcessControlBlock _process_list[PROCESS_COUNT_MAX]; // Static array of PCBs
 
-int32_t process_create_user_process(struct FAT32DriverRequest request)
-{
+int32_t process_create_user_process(struct FAT32DriverRequest request){
     int32_t retcode = PROCESS_CREATE_SUCCESS;
     if (process_manager_state.active_process_count >= PROCESS_COUNT_MAX)
     {

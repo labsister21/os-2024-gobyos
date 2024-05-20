@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "header/memory/paging.h"
-#include "header/stdlib/string.h"
-#include "header/cpu/gdt.h"
-#include "header/filesystem/fat32.h"
+#include "../memory/paging.h"
+#include "../stdlib/string.h"
+#include "../cpu/gdt.h"
+#include "../filesystem/fat32.h"
 
 // Constants
 #define PROCESS_COUNT_MAX 256

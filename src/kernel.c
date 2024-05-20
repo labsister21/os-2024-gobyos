@@ -12,6 +12,7 @@
 #include "header/memory/paging.h"
 #include "header/process/process.h"
 #include "header/scheduler/scheduler.h"
+#include "header/cmos/cmos.h"
 
 void kernel_setup(void) {
     load_gdt(&_gdt_gdtr);

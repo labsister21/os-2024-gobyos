@@ -45,6 +45,7 @@ kernel:
 	$(CC) $(CFLAGS) $(SOURCE_FOLDER)/paging.c -o $(OUTPUT_FOLDER)/paging.o
 	$(CC) $(CFLAGS) $(SOURCE_FOLDER)/process.c -o $(OUTPUT_FOLDER)/process.o
 	$(CC) $(CFLAGS) $(SOURCE_FOLDER)/scheduler.c -o $(OUTPUT_FOLDER)/scheduler.o
+	$(CC) $(CFLAGS) $(SOURCE_FOLDER)/cmos.c -o $(OUTPUT_FOLDER)/cmos.o
 	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
 	@echo Linking object files and generate elf32...
 	@rm -f *.o
@@ -83,11 +84,13 @@ user-shell:
 	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/string.c -o string.o
 	@$(CC) $(CFLAGS)  -fno-pie $(SOURCE_FOLDER)/stdmem.c -o stdmem.o
 	@$(CC) $(CFLAGS)  -fno-pie $(SOURCE_FOLDER)/command.c -o command.o
+	@$(CC) $(CFLAGS)  -fno-pie $(SOURCE_FOLDER)/cmos.c -o cmos.o
+	@$(CC) $(CFLAGS)  -fno-pie $(SOURCE_FOLDER)/portio.c -o portio.o
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 \
-		crt0.o user-shell.o string.o stdmem.o command.o -o $(OUTPUT_FOLDER)/shell
+		crt0.o user-shell.o string.o stdmem.o command.o cmos.o portio.o -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generate flat binary...
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386\
-		crt0.o user-shell.o string.o stdmem.o command.o -o $(OUTPUT_FOLDER)/shell_elf
+		crt0.o user-shell.o string.o stdmem.o command.o cmos.o portio.o -o $(OUTPUT_FOLDER)/shell_elf
 	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary bin/shell
 	@rm -f *.o

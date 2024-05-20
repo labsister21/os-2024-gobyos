@@ -4,6 +4,8 @@
 #include "header/stdlib/string.h"
 #include "header/driver/disk.h"
 #include "header/stdlib/stdtype.h"
+#include "header/filesystem/fat32.h"
+#include "header/clock/clock.h"
 
 uint32_t current_directory = ROOT_CLUSTER_NUMBER;
 struct FAT32DirectoryTable dir_table;
@@ -90,6 +92,30 @@ void splashScreen() {
     print("           \n", BIOS_PINK);
     print("                          Press enter to continue!\n\n", BIOS_PINK);
 }
+// void get_time(uint16_t* year, uint16_t* month, uint16_t* day, uint16_t* hour, uint16_t* minute, uint16_t* second) {
+//     uint16_t timestamp[6];
+//     interrupt(SYS_READ_RTC_TIME, (uint32_t) timestamp, 0, 0);
+//     *year = timestamp[0];
+//     *month = timestamp[1];
+//     *day = timestamp[2];
+//     *hour = timestamp[3];
+//     *minute = timestamp[4];
+//     *second = timestamp[5];
+// }
+// void clock_task() {
+//     uint16_t year, month, day, hour, minute, second;
+//     while (true) {
+//         get_time(&year, &month, &day, &hour, &minute, &second);
+//         // Clear the previous clock display
+
+//         interrupt(11, 0, 0, 0);
+//     }
+// }
+
+
+// void start_clock_task() {
+//     interrupt(11, (uint32_t) clock_task, 0, 0);
+// }
 
 int main(void) {
     char arg[26];
@@ -103,7 +129,6 @@ int main(void) {
     interrupt(7, 0, 0, 0);
 
     updateDirectoryTable(current_directory);
-
     while (true) {
         clear(path_str, 26);
         clear(args, 15);
@@ -137,6 +162,11 @@ int main(void) {
                     found = true;
                 }
             }
+            if (strlen(arg) == 5 &&!found) {
+            index = 5;
+            splitfirst(buf2, cmd, index+1);
+            found=true;
+        }
 
         }
 
@@ -193,12 +223,16 @@ int main(void) {
         else if (strcmp(cmd, "kill")==0){
             splitsecond(buf2, args, index+1,len);
             kill(args);
-        } 
+        } else if (strcmp(cmd, "clock")==0 || strcmp(arg, "clock")==0)
+        {
+            clock();
+        }
         else{
             print("Invalid command!\n", BIOS_RED);
         }
     }
-     return 0;
+
+    return 0;
 }
     
 

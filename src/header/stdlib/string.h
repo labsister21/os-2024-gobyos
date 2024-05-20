@@ -16,5 +16,7 @@ void strcpy(char *str_dest, char *str_src);
 void splitfirst(const uint8_t* restrict src, void* first, int offset) ;
 
 void splitsecond(const uint8_t* restrict src, void* second, int offset, int len) ;
+void itoa(int32_t value, char *result);
+
 
 #endif
