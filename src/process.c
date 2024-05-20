@@ -68,6 +68,8 @@ int32_t process_create_user_process(struct FAT32DriverRequest request)
     new_pcb->context.cpu.gs = 0x23;
     new_pcb->context.cpu.ss = 0x23;
 
+    new_pcb->req = request; 
+
     process_manager_state.active_process_count++;
 
 exit_cleanup:
@@ -83,7 +85,7 @@ struct ProcessControlBlock *process_get_current_running_pcb_pointer(void)
     return &_process_list[process_manager_state.current_running_process_index];
 }
 
-bool process_destroy(uint32_t pid)
+int8_t process_destroy(uint32_t pid)
 {
     for (int i = 0; i < PROCESS_COUNT_MAX; i++)
     {
@@ -100,10 +102,10 @@ bool process_destroy(uint32_t pid)
             {
                 process_manager_state.current_running_process_index = -1;
             }
-            return true;
+            return 0;
         }
     }
-    return false;
+    return 1;
 }
 
 uint32_t ceil_div(uint32_t numerator, uint32_t denominator)
@@ -185,6 +187,6 @@ int get_process_metadata(char *buf)
         *ptr++ = pcb->metadata.name[i];
     *ptr++ = '\n';
     *ptr = '\0';
-
+    
     return 0;
 }

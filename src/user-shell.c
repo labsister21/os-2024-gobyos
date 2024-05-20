@@ -179,7 +179,22 @@ int main(void) {
             splitsecond(buf2, args, index+1,len);
             find(args);
             updateDirectoryTable(curr2);
-        } else{
+        } 
+        else if (strcmp(cmd, "clear")==0 || strcmp(arg, "clear")==0){
+           interrupt(7, 0, 0, 0);
+        } 
+        else if (strcmp(cmd, "ps")==0){
+            ps();
+        } 
+        else if (strcmp(cmd, "exec")==0){
+            splitsecond(buf2, args, index+1,len);
+            exec(args);
+        } 
+        else if (strcmp(cmd, "kill")==0){
+            splitsecond(buf2, args, index+1,len);
+            kill(args);
+        } 
+        else{
             print("Invalid command!\n", BIOS_RED);
         }
     }

@@ -22,6 +22,9 @@ void mkdir(char* fileName);
 void cd(char* fileName);
 void mv(char* fileName);
 void find(char* fileName);
+void kill(char* fileName);
+void exec(char* fileName);
+void ps();
 void processDFS (char srcName[8], uint32_t search_directory_number, int v, bool visited[63]);
 
 #endif

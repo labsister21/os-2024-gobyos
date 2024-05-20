@@ -40,44 +40,19 @@ typedef struct {
 
 // Structure for CPU context
 typedef struct {
-    struct {
-        uint32_t edi;
-        uint32_t esi;
-    } index;
-
-    struct {
-        uint32_t ebp;
-        uint32_t esp;
-    } stack;
-
-    struct {
-        uint32_t ebx;
-        uint32_t edx;
-        uint32_t ecx;
-        uint32_t eax;
-    } general;
-
-    struct {
-        uint32_t gs;
-        uint32_t fs;
-        uint32_t es;
-        uint32_t ds;
-    } segment;
-
-    struct {
-        uint32_t eip;
-        uint32_t cs;
-        uint32_t eflags;
-    } control;
-
-    struct {
-        uint32_t esp;
-        uint32_t ss;
-    } additional;
+    uint32_t eip;
+    uint32_t esp;
+    uint32_t eflags;
+    uint32_t cs;
+    uint32_t ds;
+    uint32_t es;
+    uint32_t fs;
+    uint32_t gs;
+    uint32_t ss;
 } CPUContext;
 
 // Structure for process context
-typedef struct {
+typedef struct ProcessContext{
     CPUContext cpu;
     struct PageDirectory* page_directory_virtual_addr; // Change from uint32_t to struct PageDirectory*
 } ProcessContext;
@@ -86,6 +61,7 @@ typedef struct {
 typedef struct ProcessControlBlock {
     ProcessMetadata metadata;
     ProcessContext context;
+    struct FAT32DriverRequest req;
 } ProcessControlBlock;
 
 // Structure for process manager state
@@ -102,7 +78,7 @@ extern ProcessControlBlock _process_list[PROCESS_COUNT_MAX];
 // Function prototypes
 int32_t process_create_user_process(struct FAT32DriverRequest request);
 struct ProcessControlBlock *process_get_current_running_pcb_pointer(void);
-bool process_destroy(uint32_t pid);
+int8_t process_destroy(uint32_t pid);
 uint32_t ceil_div(uint32_t numerator, uint32_t denominator);
 int32_t process_list_get_inactive_index(void);
 int32_t process_generate_new_pid(void);

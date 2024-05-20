@@ -627,3 +627,30 @@ void processDFS (char srcName[8], uint32_t search_directory_number, int v, bool 
 }
 
 
+void kill(char *fileName){
+    if (strlen(fileName) == 0) {
+        print("kill: missing destination file operand", BIOS_RED);
+        return;
+    }
+    int32_t retcode;
+    interrupt(8, (uint32_t) &fileName, (uint32_t) &retcode, 0x0);
+    if(retcode==1){
+        print("kill: fail to kill process", BIOS_RED);
+    }
+}
+
+void exec(char *fileName){
+    if (strlen(fileName) == 0) {
+        print("exec: missing destination file operand", BIOS_RED);
+        return;
+    }
+    int32_t retcode;
+    interrupt(9, (uint32_t) &fileName, (uint32_t) &retcode, 0x0);
+}
+
+void ps(){
+    char buf[256];
+    int32_t retcode;
+    interrupt(10, (uint32_t) &buf, (uint32_t) &retcode, 0x0);
+    print(buf,BIOS_BROWN);
+}

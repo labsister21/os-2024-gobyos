@@ -11,6 +11,7 @@
 #include "header/filesystem/fat32.h"
 #include "header/memory/paging.h"
 #include "header/process/process.h"
+#include "header/scheduler/scheduler.h"
 
 void kernel_setup(void) {
     load_gdt(&_gdt_gdtr);
@@ -41,24 +42,11 @@ void kernel_setup(void) {
 
     // Create & execute process 0
     process_create_user_process(request);
-    paging_use_page_directory(_process_list[0].context.page_directory_virtual_addr);
+    scheduler_init();
+    scheduler_switch_to_next_process();
 
-    struct ClusterBuffer cbuf[2];
-    memcpy(cbuf, "OS matahariku\nOS cintaku\ni love u OS\n", 132);
-    request.buf = cbuf;
-    clear(&request.name, 8);
-    clear(&request.ext, 3);
-    memcpy(&request.name, "cintaos", 7);
-    memcpy(&request.ext, "txt", 3);
-    request.buffer_size = CLUSTER_SIZE;
-    write(request);
 
-    clear(&request.name, 8);
-    memcpy(cbuf, "os tubes favorit\n", 20);
-    memcpy(&request.name, "lain", 4);
-    write(request);
 
-    kernel_execute_user_program((void*) 0x0);
 
     while (true);
 }

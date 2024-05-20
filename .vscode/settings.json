@@ -17,6 +17,12 @@
     "typeinfo": "c",
     "paging.h": "c",
     "gdt.h": "c",
-    "process.h": "c"
+    "process.h": "c",
+    "compare": "cpp",
+    "concepts": "cpp",
+    "type_traits": "cpp",
+    "cmath": "cpp",
+    "limits": "cpp",
+    "new": "cpp"
   },
 }

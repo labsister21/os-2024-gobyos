@@ -3,6 +3,7 @@
 #include "header/cpu/portio.h"
 #include "header/text/framebuffer.h"
 #include "header/filesystem/fat32.h"
+#include "header/process/process.h"
 
 #define PIT_MAX_FREQUENCY   1193182
 #define PIT_TIMER_FREQUENCY 1000
@@ -124,6 +125,20 @@ void syscall(struct InterruptFrame frame) {
     } else if (frame.cpu.general.eax == 7) {
         framebuffer_clear();
         reset_keyboard_position();
+    } else if (frame.cpu.general.eax == 8) {
+        // untuk terminasi proses
+        uint32_t pid = *((uint32_t*) frame.cpu.general.ebx);
+        process_destroy(pid);
+    } else if (frame.cpu.general.eax == 9) {
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) frame.cpu.general.ebx;
+        int32_t result = process_create_user_process(request);
+        *((int8_t*) frame.cpu.general.ecx) = result;
+    } else if (frame.cpu.general.eax == 10) {
+        // untuk mendapat informasi proses
+        char ps[200];
+        clear(ps,200);
+        get_process_metadata(ps);
+        strcpy((char*) frame.cpu.general.ebx, ps);
     } 
 }
 
