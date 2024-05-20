@@ -203,66 +203,44 @@ int main(void) {
 
 
         if (strcmp(cmd, "cd")==0){
-            if(strlen(args)==0){
-                print("no such file or directory\n", BIOS_RED);
-            }else{
-                splitsecond(buf2, args, index+1,len);
-                cd(args);
-            }
+            splitsecond(buf2, args, index+1,len);
+            cd(args);
         } 
         else if (strcmp(cmd, "mkdir")==0){
-            if(strlen(args)==0){
-                print("no such file or directory\n", BIOS_RED);
-            }else{
-                splitsecond(buf2, args, index+1,len);
-                mkdir(args);
-            }
+            splitsecond(buf2, args, index+1,len);
+            mkdir(args);
+    
         }
         else if (strcmp(cmd, "ls")==0){
             ls();
         }
         else if (strcmp(cmd, "cp")==0){
-            if(strlen(args)==0){
-                print("no such file or directory\n", BIOS_RED);
-            }else {
-                size_t len2 = len-index+1;
-                memcpy2(args,buf2,index+1,len2);
-                cp(args);
-            }
+
+            size_t len2 = len-index+1;
+            memcpy2(args,buf2,index+1,len2);
+            cp(args);
         }
         else if (strcmp(cmd, "cat")==0){
-            if(strlen(args)==0){
-                print("no such file or directory\n", BIOS_RED);
-            }else {
-                splitsecond(buf2, args, index+1,len);
-                cat(args);
-            }
+
+            splitsecond(buf2, args, index+1,len);
+            cat(args);
+ 
         }
         else if (strcmp(cmd, "mv")==0){
-            if(strlen(args)==0){
-                print("no such file or directory\n", BIOS_RED);
-            }else {
-                splitsecond(buf2, args, index+1,len);
-                mv(args);
-            }
+            
+            splitsecond(buf2, args, index+1,len);
+            mv(args);
         }
         else if (strcmp(cmd, "rm")==0){
-            if(strlen(args)==0){
-                print("no such file or directory\n", BIOS_RED);
-            }else {
-                splitsecond(buf2, args, index+1,len);
-                rm(args);
-            }
+           
+            splitsecond(buf2, args, index+1,len);
+            rm(args);
         }
         else if (strcmp(cmd, "find")==0){
-            if(strlen(args)==0){
-                print("no such file or directory\n", BIOS_RED);
-            }else {
-                int curr2 = current_directory;
-                splitsecond(buf2, args, index+1,len);
-                find(args);
-                updateDirectoryTable(curr2);
-            }
+            int curr2 = current_directory;
+            splitsecond(buf2, args, index+1,len);
+            find(args);
+            updateDirectoryTable(curr2);
         } 
         else if (strcmp(cmd, "clear")==0 || strcmp(arg, "clear")==0){
            interrupt(7, 0, 0, 0);
