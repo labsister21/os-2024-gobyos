@@ -384,6 +384,8 @@ void mv(char *fileName){
 
     char srcName[8] = {'\0','\0','\0','\0','\0','\0','\0','\0'};
     char srcExt[3] = {'\0','\0','\0'};
+    char dstName[8] = {'\0','\0','\0','\0','\0','\0','\0','\0'};
+    char destExt[3] = {'\0','\0','\0'};
 
     int index = 0;
     int buf_len = strlen(fileName);
@@ -406,20 +408,22 @@ void mv(char *fileName){
 
         index = 0;
         buf_len = strlen(source);
-        bool valid = false;
+        bool valid_dir = false;
+        bool file = false;
         const uint8_t *buf2 = (const uint8_t*) source;
         for (int i = 0; i < buf_len; i++) {
             if (source[i] == '.'){ 
                 index = i;
-                valid = true;
+                valid_dir = true;
+                file = true;
                 splitfirst(buf2, srcName, index);
                 break;
             }
         }
 
-        if(!valid){
+        if(!valid_dir){
             strcpy(srcName,source);
-            valid = true;
+            valid_dir = true;
         }
 
         int entry_index = findEntryName(srcName);
@@ -429,30 +433,29 @@ void mv(char *fileName){
                 updateDirectoryTable(current_directory);
             }
         }
+        int32_t retcode;
 
-        struct ClusterBuffer cl           = {0};
-        struct FAT32DriverRequest reqsrc = {
-            .buf = &cl,
-            .name = "\0\0\0\0\0\0\0",
-            .ext = "\0\0\0",
-            .parent_cluster_number = current_directory,
-            .buffer_size = 4 * CLUSTER_SIZE,
-        };
+        // Memindahkan file ke folder atau file ke file 
+        if(file && valid_dir){
 
-        memcpy(&(reqsrc.name), srcName, 8);
+            struct ClusterBuffer cl           = {0};
+            struct FAT32DriverRequest reqsrc = {
+                .buf = &cl,
+                .name = "\0\0\0\0\0\0\0",
+                .ext = "\0\0\0",
+                .parent_cluster_number = current_directory,
+                .buffer_size = 4 * CLUSTER_SIZE,
+            };
 
-        if(valid){
-            int32_t retcode;
-
+            memcpy(&(reqsrc.name), srcName, 8);
+            // ini buat dapatin ext nya aja di file awal
             splitsecond(buf2, srcExt, index+1,buf_len);
             memcpy(&(reqsrc.ext), srcExt, 3);
             interrupt(0, (uint32_t) &reqsrc, (uint32_t) &retcode, 0x0);
 
             if (retcode == 3 ) {
                 print("mv : No such file or directory\n", BIOS_RED);
-                
             } else{
-                
                 int dest_index = findEntryName(dest);
                 if (entry_index != -1) {
                     if (dir_table.table[dest_index].attribute == ATTR_SUBDIRECTORY) {
@@ -460,7 +463,17 @@ void mv(char *fileName){
                         updateDirectoryTable(current_directory);
                     }
                 }
-
+                index = 0;
+                buf_len = strlen(dest);
+                bool file2 = false;
+                for (int i = 0; i < buf_len; i++) {
+                    if (dest[i] == '.'){ 
+                        index = i;
+                        file2 = true;
+                        splitname(dest, dstName, destExt, index+1);
+                        break;
+                    }
+                }
                 struct ClusterBuffer cbuf = {0};
                 struct FAT32DriverRequest destReq = {
                     .buf = &cbuf,
@@ -470,10 +483,99 @@ void mv(char *fileName){
                     .buffer_size = CLUSTER_SIZE
                 };
 
+                // hapus dulu file destinasi
+                memcpy(&(destReq.name), dstName, 8);
+                memcpy(&(destReq.ext), destExt, 3);
+                interrupt(3, (uint32_t) &destReq, (uint32_t) &retcode, 0x0);
+
+                // tulis kembali dengan buffer baru
+                strcpy(destReq.buf, reqsrc.buf);
+                memcpy(&(destReq.name), dstName, 8);
+                memcpy(&(destReq.ext), destExt, 3);
+                interrupt(2, (uint32_t) &destReq, (uint32_t) &retcode, 0x0);
+
+                if (retcode != 0) {
+                    switch (retcode) {
+                    case 1:
+                        print("cp: cannot copy\n", BIOS_RED);
+                        return;
+                    case -1:
+                        print("cp: Unknown error occured\n", BIOS_RED);
+                        return;
+                    }
+                }
+                if(!file2){
+
+                    // ini file
+                    struct ClusterBuffer cbuf = {0};
+                    struct FAT32DriverRequest destReq = {
+                        .buf = &cbuf,
+                        .name = "\0\0\0\0\0\0\0\0",
+                        .ext = "\0\0\0",
+                        .parent_cluster_number = current_directory,
+                        .buffer_size = CLUSTER_SIZE
+                    };
+
+                    strcpy(destReq.buf, reqsrc.buf);
+                    memcpy(&(destReq.name), reqsrc.name, 8);
+                    memcpy(&(destReq.ext), reqsrc.ext, 3);
+                    interrupt(2, (uint32_t) &destReq, (uint32_t) &retcode, 0x0);
+
+                    if (retcode != 0) {
+                        switch (retcode) {
+                        case 1:
+                            print("mv: cannot copy\n", BIOS_RED);
+                            return;
+                        case -1:
+                            print("mv: Unknown error occured\n", BIOS_RED);
+                            return;
+                        }
+                    }
+                }
+
+                // ganti ke directory semula
+                current_directory = curr;
+                updateDirectoryTable(current_directory);
+
+                // hapus file awal
+                interrupt(3, (uint32_t) &reqsrc, (uint32_t) &retcode, 0x0);
+            }
+
+        // Memindahkan folder ke folder
+        }else if(!file && valid_dir) {
+            struct FAT32DriverRequest reqsrc = {
+                .buf = 0,
+                .name = "\0\0\0\0\0\0\0",
+                .ext = "\0\0\0",
+                .parent_cluster_number = current_directory,
+                .buffer_size = 0,
+            };
+            memcpy(&(reqsrc.name), fileName, 8);
+            interrupt(0, (uint32_t) &reqsrc, (uint32_t) &retcode, 0x0);
+
+            if (retcode == 3 ) {
+                print("mv : No such file or directory\n", BIOS_RED);
+                
+            } else{
+                int dest_index = findEntryName(dest);
+                if (entry_index != -1) {
+                    if (dir_table.table[dest_index].attribute == ATTR_SUBDIRECTORY) {
+                        current_directory =  (int) ((dir_table.table[dest_index].cluster_high << 16) | dir_table.table[dest_index].cluster_low);;
+                        updateDirectoryTable(current_directory);
+                    }
+                }
+
+                struct FAT32DriverRequest destReq = {
+                    .buf = 0,
+                    .name = "\0\0\0\0\0\0\0\0",
+                    .ext = "\0\0\0",
+                    .parent_cluster_number = current_directory,
+                    .buffer_size = CLUSTER_SIZE
+                };
+
                 // tulis ke destinasi
                 strcpy(destReq.buf, reqsrc.buf);
                 memcpy(&(destReq.name), reqsrc.name, 8);
-                memcpy(&(destReq.ext), reqsrc.ext, 3);
                 interrupt(2, (uint32_t) &destReq, (uint32_t) &retcode, 0x0);
 
                 if (retcode != 0) {
@@ -487,17 +589,17 @@ void mv(char *fileName){
                     }
                 }
 
-                  // ganti ke directory semula
+                // ganti ke directory semula
                 current_directory = curr;
                 updateDirectoryTable(current_directory);
 
                 // hapus file awal
                 interrupt(3, (uint32_t) &reqsrc, (uint32_t) &retcode, 0x0);
             }
-        } else{
+        }else{
             print("mv : No such file or directory\n", BIOS_RED);
         }
-        }
+    }
 }
 
 
@@ -549,11 +651,7 @@ void find(char *fileName) {
         
         memcpy(&(request.name), srcName, 8);
         memcpy(&(request.ext), srcExt, 3);
-        
-   
-        // Traverse through all entries in the updated directory table
-        //  tiap tingkatan direktori ini akn di traversal semua
-            // print direktori tabelnya
+
         if (dir_table.table[i].user_attribute == UATTR_NOT_EMPTY) {
             // print(dir_table.table[i].name, BIOS_BROWN);
             // if (dir_table.table[i].attribute != ATTR_SUBDIRECTORY && strlen(dir_table.table[i].ext) != 0){
@@ -565,7 +663,6 @@ void find(char *fileName) {
                 search_directory_number = (int)  ((dir_table.table[i].cluster_high << 16) | dir_table.table[i].cluster_low);
                 updateDirectoryTable(search_directory_number);
                 processDFS(srcName, search_directory_number, i, visited);  
-
                 visited[i-1]= true;
             }
         }
@@ -655,43 +752,4 @@ void ps(){
     int32_t retcode;
     interrupt(10, (uint32_t) &buf, (uint32_t) &retcode, 0x0);
     print(buf,BIOS_BROWN);
-}
-
-
-void clock()
-{
-  uint16_t year;
-  uint16_t month;
-  uint16_t day;
-  uint16_t hour;
-  uint16_t minute;
-  uint16_t second;
-  read_rtc(&year, &month, &day, &hour, &minute, &second);
-
-  char syear[10];
-  char smonth[10];
-  char sday[10];
-  char shour[10];
-  char sminute[10];
-  char ssecond[10];
-  itoa((int32_t)year, syear);
-  itoa((int32_t)month, smonth);
-  itoa((int32_t)day, sday);
-  itoa((int32_t)hour, shour);
-  itoa((int32_t)minute, sminute);
-  itoa((int32_t)second, ssecond);
-
-  print(syear, BIOS_WHITE);
-  print("-",BIOS_WHITE);
-  print(smonth, BIOS_WHITE);
-  print("-", BIOS_WHITE);
-  print(sday, BIOS_WHITE);
-  print(" ", BIOS_WHITE);
-  print(shour, BIOS_WHITE);
-  print(":", BIOS_WHITE);
-  print(sminute, BIOS_WHITE);
-  print(":", BIOS_WHITE);
-  print(ssecond, BIOS_WHITE);
-
-  print(" UTC\n", BIOS_WHITE);
 }
